@@ -1,38 +1,81 @@
-function MessageControl({ message, setMessage, onSend, disabled }) {
-  function handleKeyDown(event) {
-    if (event.key === "Enter") {
-      onSend();
-    }
-  }
-
-  const byteLength = new TextEncoder().encode(message).length;
+function MessageControl({
+  message,
+  setMessage,
+  sendMessage,
+  isSending,
+}) {
+  const isDisabled =
+    isSending || !message.trim();
 
   return (
     <section className="px-6 sm:px-10 lg:px-16">
-      <div className="border border-line-faint bg-surface">
-        <div className="flex flex-col sm:flex-row sm:items-stretch">
+      <div
+        className="
+          border
+          border-line-faint
+
+          bg-surface
+        "
+      >
+        <div
+          className="
+            flex
+            flex-col
+
+            sm:flex-row
+            sm:items-stretch
+          "
+        >
+          {/* =========================================
+              MESSAGE INPUT
+          ========================================= */}
+
           <div className="min-w-0 flex-1">
-            <div className="mono flex items-center justify-between px-5 pt-3 text-[9px] uppercase tracking-[0.2em] text-muted">
-              <span>Message</span>
-              <span>{byteLength}B</span>
+            <div
+              className="
+                mono
+
+                px-5
+                pt-3
+
+                text-[9px]
+                uppercase
+                tracking-[0.2em]
+
+                text-muted
+              "
+            >
+              Message
             </div>
 
             <input
               type="text"
               value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={disabled}
+              onChange={(event) =>
+                setMessage(event.target.value)
+              }
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter" &&
+                  !isDisabled
+                ) {
+                  sendMessage();
+                }
+              }}
+              disabled={isSending}
               placeholder="Enter message..."
               className="
                 w-full
+
                 bg-transparent
+
                 px-5
                 pb-4
                 pt-2
 
                 mono
                 text-sm
+
                 text-ink
 
                 outline-none
@@ -42,15 +85,20 @@ function MessageControl({ message, setMessage, onSend, disabled }) {
                 focus-visible:ring-2
                 focus-visible:ring-accent/50
 
-                disabled:opacity-60
+                disabled:cursor-not-allowed
+                disabled:opacity-50
               "
             />
           </div>
 
+          {/* =========================================
+              SEND BUTTON
+          ========================================= */}
+
           <button
             type="button"
-            onClick={onSend}
-            disabled={disabled || !message.trim()}
+            onClick={sendMessage}
+            disabled={isDisabled}
             className="
               group
 
@@ -63,10 +111,12 @@ function MessageControl({ message, setMessage, onSend, disabled }) {
               py-4
 
               mono
+
               text-[10px]
               font-medium
               uppercase
               tracking-[0.15em]
+
               text-accent-deep
 
               transition-colors
@@ -81,16 +131,26 @@ function MessageControl({ message, setMessage, onSend, disabled }) {
               disabled:opacity-40
 
               sm:w-32
+
               sm:border-l
               sm:border-t-0
             "
           >
-            {disabled ? (
+            {isSending ? (
               "Sending..."
             ) : (
               <>
                 Send{" "}
-                <span className="inline-block transition-transform group-hover:translate-x-0.5">
+
+                <span
+                  className="
+                    inline-block
+
+                    transition-transform
+
+                    group-hover:translate-x-0.5
+                  "
+                >
                   →
                 </span>
               </>

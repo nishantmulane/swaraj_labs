@@ -7,8 +7,14 @@ import Footer from "./components/Footer";
 import useNetworkSimulation from "./hooks/useNetworkSimulation";
 
 function App() {
-  const { message, setMessage, packet, sendMessage, isSending, isDelivered } =
-    useNetworkSimulation();
+  const {
+    message,
+    setMessage,
+    packet,
+    transmission,
+    sendMessage,
+    isBusy,
+  } = useNetworkSimulation();
 
   return (
     <main className="network-grid min-h-screen">
@@ -17,17 +23,21 @@ function App() {
 
         <Transmission
           packet={packet}
-          isSending={isSending}
-          isDelivered={isDelivered}
+          transmission={transmission}
+          draftMessage={message}
         />
 
-        <PacketInspector packet={packet} />
+        <PacketInspector
+          packet={packet}
+          draftMessage={message}
+          transmission={transmission}
+        />
 
         <MessageControl
           message={message}
           setMessage={setMessage}
-          onSend={sendMessage}
-          disabled={isSending}
+          sendMessage={sendMessage}
+          isSending={isBusy}
         />
 
         <Footer />

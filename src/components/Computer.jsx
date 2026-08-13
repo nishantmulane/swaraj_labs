@@ -1,113 +1,390 @@
-function Computer({ name, packet, role }) {
+function Computer({
+  name,
+  packet,
+  transmission,
+  draftMessage,
+  role,
+}) {
   const isSender = role === "sender";
   const isReceiver = role === "receiver";
 
-  const isTransmitting = packet?.status === "TRANSMITTING";
-  const isDelivered = packet?.status === "DELIVERED";
+  const status = transmission.status;
 
-  const isActive = (isSender && isTransmitting) || (isReceiver && isDelivered);
+  const isTransmitting = status === "TRANSMITTING";
+  const isReceiving = status === "RECEIVING";
+  const isDelivered = status === "DELIVERED";
 
-  let statusLabel = "Online";
-  if (isSender && isTransmitting) statusLabel = "Sending...";
-  if (isReceiver && isDelivered) statusLabel = "Received";
+  const hasDraft = Boolean(draftMessage?.trim());
+  const hasPacket = Boolean(packet);
 
-  const showPayload = isReceiver && isDelivered;
-  const payload = packet?.payload;
+  // =========================================
+  // SENDER STATE
+  // =========================================
+
+  let senderText = hasDraft ? draftMessage : "Awaiting message";
+  let senderScreenLabel = hasDraft ? "Message" : "Endpoint";
+  let senderStatus = "Ready";
+
+  if (isTransmitting) {
+    senderText = packet?.payload || draftMessage;
+    senderScreenLabel = "Transmitting";
+    senderStatus = "Sending...";
+  }
+
+  if (isReceiving) {
+    senderText = packet?.payload || draftMessage;
+    senderScreenLabel = "Sent";
+    senderStatus = "Sent";
+  }
+
+  if (isDelivered) {
+    senderText = packet?.payload || draftMessage;
+    senderScreenLabel = "Successful";
+    senderStatus = "Sent";
+  }
+
+  // =========================================
+  // RECEIVER STATE
+  // =========================================
+
+  let receiverText = name;
+  let receiverScreenLabel = "Endpoint";
+  let receiverStatus = "Online";
+
+  if (isTransmitting) {
+    receiverText = packet?.payload || "Receiving...";
+    receiverScreenLabel = "Receiving";
+    receiverStatus = "Receiving...";
+  }
+
+  if (isReceiving) {
+    receiverText = packet?.payload || "Receiving...";
+    receiverScreenLabel = "Receiving";
+    receiverStatus = "Receiving...";
+  }
+
+  if (isDelivered) {
+    receiverText = packet?.payload || "—";
+    receiverScreenLabel = "Successful";
+    receiverStatus = "Successful";
+  }
+
+  // =========================================
+  // FINAL DISPLAY
+  // =========================================
+
+  const displayText = isSender
+    ? senderText
+    : receiverText;
+
+  const screenLabel = isSender
+    ? senderScreenLabel
+    : receiverScreenLabel;
+
+  const statusLabel = isSender
+    ? senderStatus
+    : receiverStatus;
+
+  const isActive =
+    isTransmitting ||
+    isReceiving ||
+    isDelivered;
+
+  const showPayload =
+    isSender
+      ? hasDraft || hasPacket
+      : isTransmitting ||
+        isReceiving ||
+        isDelivered;
+
+  // =========================================
+  // COLORS
+  // =========================================
+
+  const screenTextColor =
+    isActive
+      ? "var(--color-accent-soft)"
+      : isSender && hasDraft
+        ? "var(--color-ink)"
+        : "var(--color-ink)";
 
   return (
     <div className="flex shrink-0 flex-col items-center">
-      {/* Monitor */}
+      {/* =========================================
+          MONITOR
+      ========================================= */}
+
       <div
         className="
-          h-36 w-56
-          border border-line
+          h-36
+          w-56
+
+          border
+          border-line
+
           bg-surface
+
           p-2.5
 
-          sm:h-40 sm:w-60
-          lg:h-44 lg:w-64
+          sm:h-40
+          sm:w-60
+
+          lg:h-44
+          lg:w-64
         "
       >
-        {/* Screen */}
+        {/* =========================================
+            SCREEN
+        ========================================= */}
+
         <div
           className="
             relative
-            flex h-full w-full
-            items-center justify-center
+
+            flex
+            h-full
+            w-full
+
+            items-center
+            justify-center
+
             overflow-hidden
 
-            border border-line-faint
+            border
+            border-line-faint
+
             bg-surface-deep
           "
         >
-          {/* Subtle screen grid */}
+          {/* Screen grid */}
+
           <div
             className="
-              absolute inset-0
+              pointer-events-none
+
+              absolute
+              inset-0
+
               opacity-25
 
               bg-[linear-gradient(rgba(154,166,178,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(154,166,178,0.04)_1px,transparent_1px)]
+
               bg-[size:24px_24px]
             "
           />
 
-          {/* Corner tag once payload replaces the default readout */}
-          {showPayload && (
-            <div className="mono absolute left-2 top-2 text-[8px] uppercase tracking-wider text-muted">
-              {name}
-            </div>
-          )}
+          {/* Endpoint label */}
 
-          {/* Screen content */}
-          <div className="relative px-3 text-center">
+          <div
+            className="
+              mono
+
+              absolute
+              left-2
+              top-2
+
+              text-[8px]
+              uppercase
+              tracking-[0.16em]
+
+              text-muted
+            "
+          >
+            {name}
+          </div>
+
+          {/* =========================================
+              SCREEN CONTENT
+          ========================================= */}
+
+          <div
+            className="
+              relative
+
+              flex
+              max-w-[85%]
+              flex-col
+              items-center
+
+              px-3
+
+              text-center
+            "
+          >
+            <div
+              className={`
+                mono
+                mb-2
+
+                text-[9px]
+                uppercase
+                tracking-[0.28em]
+
+                ${
+                  isActive
+                    ? "text-accent-soft"
+                    : "text-muted"
+                }
+              `}
+            >
+              {screenLabel}
+            </div>
+
             {showPayload ? (
-              <>
-                <div className="mono mb-2 text-[9px] uppercase tracking-[0.28em] text-accent-soft">
-                  Received
-                </div>
-                <div className="mono break-all text-base text-accent-soft sm:text-lg">
-                  {payload}
-                </div>
-              </>
+              <div
+                className="
+                  mono
+
+                  break-all
+
+                  text-sm
+                  leading-relaxed
+
+                  sm:text-base
+                "
+                style={{
+                  color: screenTextColor,
+                }}
+              >
+                {displayText}
+              </div>
             ) : (
-              <>
-                <div className="mono mb-2 text-[9px] uppercase tracking-[0.28em] text-muted">
-                  Endpoint
-                </div>
-                <div className="text-lg font-medium tracking-tight text-ink sm:text-xl">
-                  {name}
-                </div>
-              </>
+              <div
+                className="
+                  mono
+
+                  text-base
+                  leading-relaxed
+
+                  text-ink
+
+                  sm:text-lg
+                "
+              >
+                {displayText}
+              </div>
             )}
           </div>
 
-          {/* Screen status */}
-          <div className="absolute bottom-2 right-2.5 flex items-center gap-1.5">
+          {/* =========================================
+              SCREEN STATUS
+          ========================================= */}
+
+          <div
+            className="
+              absolute
+              bottom-2
+              right-2.5
+
+              flex
+              items-center
+              gap-1.5
+            "
+          >
             <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                isActive ? "bg-accent" : "bg-muted"
-              }`}
+              className={`
+                h-1.5
+                w-1.5
+                rounded-full
+
+                ${
+                  isActive
+                    ? "bg-accent"
+                    : "bg-muted"
+                }
+              `}
             />
-            <span className="mono text-[8px] uppercase tracking-wider text-muted">
-              {isActive ? "Active" : "Ready"}
+
+            <span
+              className="
+                mono
+
+                text-[8px]
+                uppercase
+                tracking-wider
+
+                text-muted
+              "
+            >
+              {isActive
+                ? "Active"
+                : isReceiver
+                  ? "Online"
+                  : "Ready"}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Monitor stand */}
-      <div className="h-6 w-8 border-x border-line bg-surface" />
+      {/* =========================================
+          MONITOR STAND
+      ========================================= */}
 
-      {/* Monitor base */}
-      <div className="h-2 w-24 border border-line bg-surface sm:w-28" />
+      <div
+        className="
+          h-6
+          w-8
 
-      {/* External status */}
-      <div className="mt-3 flex items-center gap-2 mono text-[9px] uppercase tracking-[0.16em] text-muted-soft">
+          border-x
+          border-line
+
+          bg-surface
+        "
+      />
+
+      {/* =========================================
+          MONITOR BASE
+      ========================================= */}
+
+      <div
+        className="
+          h-2
+          w-24
+
+          border
+          border-line
+
+          bg-surface
+
+          sm:w-28
+        "
+      />
+
+      {/* =========================================
+          EXTERNAL STATUS
+      ========================================= */}
+
+      <div
+        className="
+          mt-3
+
+          flex
+          items-center
+          gap-2
+
+          mono
+
+          text-[9px]
+          uppercase
+          tracking-[0.16em]
+
+          text-muted-soft
+        "
+      >
         <span
-          className={`h-1.5 w-1.5 rounded-full ${
-            isActive ? "bg-accent" : "bg-muted"
-          }`}
+          className={`
+            h-1.5
+            w-1.5
+            rounded-full
+
+            ${
+              isActive
+                ? "bg-accent"
+                : "bg-muted"
+            }
+          `}
         />
+
         {statusLabel}
       </div>
     </div>
