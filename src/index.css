@@ -1,0 +1,147 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+  --color-base: #11161c;
+  --color-surface: #171e26;
+  --color-surface-raised: #1d2630;
+  --color-surface-deep: #12181e;
+
+  --color-line: #43515e;
+  --color-line-soft: #27313a;
+  --color-line-faint: #2f3a44;
+
+  --color-accent: #b8d94a;
+  --color-accent-soft: #d5e88a;
+  --color-accent-hover: #c8de70;
+  --color-accent-deep: #18200d;
+
+  --color-ink: #e4e9ed;
+  --color-muted: #71808d;
+  --color-muted-soft: #8e9ba7;
+}
+
+:root {
+  font-family: "Space Grotesk", sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-base);
+  color: var(--color-ink);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+.network-grid {
+  background-color: var(--color-base);
+
+  background-image:
+    linear-gradient(rgba(154, 166, 178, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(154, 166, 178, 0.035) 1px, transparent 1px);
+
+  background-size: 48px 48px;
+}
+
+@keyframes move-horizontal {
+  from {
+    left: 0;
+    transform: translateY(-50%);
+  }
+  to {
+    left: 100%;
+    transform: translate(-100%, -50%);
+  }
+}
+
+@keyframes move-vertical {
+  from {
+    top: 0;
+    transform: translate(-50%, 0);
+  }
+  to {
+    top: 100%;
+    transform: translate(-50%, -100%);
+  }
+}
+
+.packet {
+  animation: move-vertical 2s linear forwards;
+}
+
+@keyframes drift-vertical {
+  0% {
+    top: -4%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    top: 104%;
+    opacity: 0;
+  }
+}
+
+@keyframes drift-horizontal {
+  0% {
+    left: -4%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    left: 104%;
+    opacity: 0;
+  }
+}
+
+.ambient-pulse {
+  animation: drift-vertical 3.2s ease-in-out infinite;
+}
+
+@media (min-width: 1024px) {
+  .packet {
+    animation: move-horizontal 2s linear forwards;
+  }
+
+  .ambient-pulse {
+    animation: drift-horizontal 3.2s ease-in-out infinite;
+  }
+}
