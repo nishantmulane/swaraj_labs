@@ -8,7 +8,7 @@ Since **Swaraj Labs** is the identity, I'd make the top of the README more inten
 
 > A visual exploration of how computer networks work.
 
-**[🌐 Live Demo](https://swaraj-labs.vercel.app/)**
+**[🌐 Live Demo]** (https://swaraj-labs.vercel.app/)
 
 ---
 
