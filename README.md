@@ -8,7 +8,8 @@ Since **Swaraj Labs** is the identity, I'd make the top of the README more inten
 
 > A visual exploration of how computer networks work.
 
-<a href="https://swaraj-labs.vercel.app"><strong>🌐 Live Demo</strong></a>
+[🌐Live Demo](https://swaraj-labs.vercel.app)
+
 ---
 
 NETWORK is an interactive learning experience that visualizes
