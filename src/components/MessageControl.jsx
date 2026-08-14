@@ -3,17 +3,38 @@ function MessageControl({
   setMessage,
   sendMessage,
   isSending,
+  transmission,
 }) {
+  const status = transmission?.status || "READY";
+
   const isDisabled =
     isSending || !message.trim();
 
+  const messageSize = new TextEncoder()
+    .encode(message || "")
+    .length;
+
+  const statusLabel = {
+    READY: "Ready",
+    TRANSMITTING: "Sending...",
+    RECEIVING: "Receiving...",
+    DELIVERED: "Sent",
+  }[status] || "Ready";
+
+  const isActive =
+    status === "TRANSMITTING" ||
+    status === "RECEIVING";
+
+  const isDelivered =
+    status === "DELIVERED";
+
   return (
-    <section className="px-6 sm:px-10 lg:px-16">
+    <section className="w-full">
       <div
         className="
+          overflow-hidden
           border
-          border-line-faint
-
+          border-line-soft
           bg-surface
         "
       >
@@ -26,26 +47,82 @@ function MessageControl({
             sm:items-stretch
           "
         >
-          {/* =========================================
+          {/* =====================================
               MESSAGE INPUT
-          ========================================= */}
+          ===================================== */}
 
           <div className="min-w-0 flex-1">
             <div
               className="
-                mono
+                flex
+                items-center
+                justify-between
 
-                px-5
-                pt-3
-
-                text-[9px]
-                uppercase
-                tracking-[0.2em]
-
-                text-muted
+                px-4
+                pt-2.5
               "
             >
-              Message
+              <span
+                className="
+                  mono
+                  text-[8px]
+                  uppercase
+                  tracking-[0.2em]
+                  text-muted
+                "
+              >
+                Message
+              </span>
+
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-2
+                "
+              >
+                {/* Status */}
+
+                <span
+                  className={`
+                    mono
+                    text-[7px]
+                    uppercase
+                    tracking-[0.14em]
+
+                    ${
+                      isActive || isDelivered
+                        ? "text-accent"
+                        : "text-muted-soft"
+                    }
+                  `}
+                >
+                  {statusLabel}
+                </span>
+
+                <span
+                  className="
+                    h-1
+                    w-1
+                    rounded-full
+                    bg-line
+                  "
+                />
+
+                {/* Size */}
+
+                <span
+                  className="
+                    mono
+                    text-[7px]
+                    uppercase
+                    tracking-[0.15em]
+                    text-muted-soft
+                  "
+                >
+                  {messageSize} B
+                </span>
+              </div>
             </div>
 
             <input
@@ -69,12 +146,12 @@ function MessageControl({
 
                 bg-transparent
 
-                px-5
-                pb-4
-                pt-2
+                px-4
+                pb-3
+                pt-1.5
 
                 mono
-                text-sm
+                text-xs
 
                 text-ink
 
@@ -91,9 +168,9 @@ function MessageControl({
             />
           </div>
 
-          {/* =========================================
-              SEND BUTTON
-          ========================================= */}
+          {/* =====================================
+              SEND
+          ===================================== */}
 
           <button
             type="button"
@@ -101,18 +178,22 @@ function MessageControl({
             disabled={isDisabled}
             className="
               group
+              flex
+              w-full
+              shrink-0
+              items-center
+              justify-center
 
               border-t
-              border-line-faint
+              border-line-soft
 
               bg-accent
 
               px-8
-              py-4
+              py-3
 
               mono
-
-              text-[10px]
+              text-[9px]
               font-medium
               uppercase
               tracking-[0.15em]
@@ -120,6 +201,7 @@ function MessageControl({
               text-accent-deep
 
               transition-colors
+              duration-200
 
               hover:bg-accent-hover
 
@@ -130,30 +212,38 @@ function MessageControl({
               disabled:cursor-not-allowed
               disabled:opacity-40
 
-              sm:w-32
-
+              sm:w-36
+              sm:min-w-[144px]
               sm:border-l
               sm:border-t-0
             "
           >
             {isSending ? (
-              "Sending..."
+              <span className="inline-flex min-w-[72px] items-center justify-center gap-1.5">
+                Sending
+                <span className="inline-block w-4 text-left">
+                  ...
+                </span>
+              </span>
+            ) : isDelivered ? (
+              <span className="inline-flex min-w-[72px] items-center justify-center gap-1.5">
+                Sent
+                <span>✓</span>
+              </span>
             ) : (
-              <>
-                Send{" "}
-
+              <span className="inline-flex min-w-[72px] items-center justify-center gap-1.5">
+                Send
                 <span
                   className="
                     inline-block
-
                     transition-transform
-
+                    duration-200
                     group-hover:translate-x-0.5
                   "
                 >
                   →
                 </span>
-              </>
+              </span>
             )}
           </button>
         </div>

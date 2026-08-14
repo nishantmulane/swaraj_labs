@@ -1,63 +1,120 @@
-import { useState } from "react";
-
 function PacketInspector({
   packet,
   draftMessage,
   transmission,
+  onClear,
 }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const status = transmission?.status || "READY";
 
-  const status = transmission.status;
+  const hasPacket = Boolean(packet);
 
-  const isPreview = !packet;
+  const payload = packet?.payload || "";
 
-  const payload =
-    packet?.payload ??
-    draftMessage ??
-    "—";
+  const previewPayload =
+    payload ||
+    draftMessage ||
+    "No packet captured";
 
   const payloadSize = packet
     ? packet.size
-    : new TextEncoder()
-        .encode(draftMessage || "")
-        .length;
+    : new TextEncoder().encode(draftMessage || "").length;
 
-  const statusLabels = {
+  const statusLabel = {
     READY: "READY",
-    TRANSMITTING: "TRANSMITTING",
+    TRANSMITTING: "IN TRANSIT",
     RECEIVING: "RECEIVING",
     DELIVERED: "DELIVERED",
-  };
-
-  const displayStatus =
-    isPreview
-      ? "READY"
-      : statusLabels[status] || status;
+  }[status] || "READY";
 
   const isActive =
     status === "TRANSMITTING" ||
     status === "RECEIVING" ||
     status === "DELIVERED";
 
+  // =========================================
+  // HEX
+  // =========================================
+
+  const rawHex = packet?.payload
+    ? Array.from(new TextEncoder().encode(packet.payload))
+        .map((byte) =>
+          byte
+            .toString(16)
+            .padStart(2, "0")
+            .toUpperCase()
+        )
+        .join(" ")
+    : "—";
+
+  // =========================================
+  // ASCII
+  // =========================================
+
+  const ascii = packet?.payload || "—";
+
+  // =========================================
+  // LIFECYCLE
+  // =========================================
+
+  const lifecycle = [
+    {
+      label: "Created",
+      time: transmission?.createdAt,
+      active: Boolean(transmission?.createdAt),
+    },
+    {
+      label: "In Transit",
+      time:
+        transmission?.sentAt ||
+        transmission?.receivingAt,
+      active:
+        status === "TRANSMITTING" ||
+        status === "RECEIVING" ||
+        status === "DELIVERED",
+    },
+    {
+      label: "Delivered",
+      time: transmission?.deliveredAt,
+      active: status === "DELIVERED",
+    },
+  ];
+
+  // =========================================
+  // EXPLANATION
+  // =========================================
+
+  let explanation = "No packet captured yet.";
+
+  if (status === "TRANSMITTING") {
+    explanation =
+      "Packet is moving from Sender to Receiver.";
+  }
+
+  if (status === "RECEIVING") {
+    explanation =
+      "Receiver is processing the packet.";
+  }
+
+  if (status === "DELIVERED") {
+    explanation =
+      "Packet reached the Receiver successfully.";
+  }
+
   return (
-    <section className="px-6 sm:px-10 lg:px-16">
+    <section className="w-full">
       <div
         className="
           overflow-hidden
-
           border
           border-line-soft
-
           bg-surface
         "
       >
-        {/* Header */}
+        {/* =====================================
+            HEADER
+        ===================================== */}
 
-        <button
-          type="button"
-          onClick={() =>
-            setIsOpen((current) => !current)
-          }
+        <div
           className="
             flex
             w-full
@@ -67,229 +124,323 @@ function PacketInspector({
             border-b
             border-line-soft
 
-            px-5
-            py-3
-
-            text-left
-
-            transition-colors
-
-            hover:bg-surface-raised
-
-            focus-visible:outline-none
-            focus-visible:ring-2
-            focus-visible:ring-accent/50
+            px-4
+            py-2.5
           "
         >
-          <div className="flex items-center gap-3">
-            <span
+          <div className="min-w-0">
+            <div
               className="
                 mono
-
-                text-[9px]
+                text-[8px]
                 uppercase
                 tracking-[0.2em]
-
                 text-muted
               "
             >
-              Packet
-            </span>
+              Packet Inspector
+            </div>
 
-            <span
+            <div
               className="
                 mono
-
-                text-[8px]
+                mt-0.5
+                text-[7px]
                 uppercase
-                tracking-[0.16em]
-
+                tracking-[0.14em]
                 text-muted-soft
               "
             >
-              Inspector
-            </span>
-
-            {isPreview && (
-              <span
-                className="
-                  mono
-
-                  text-[8px]
-                  uppercase
-                  tracking-[0.15em]
-
-                  text-muted-soft
-                "
-              >
-                / Live Preview
-              </span>
-            )}
+              {hasPacket
+                ? "Last Packet"
+                : "Waiting for Packet"}
+            </div>
           </div>
 
-          <span
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClear}
+              disabled={!hasPacket}
+              className="
+                mono
+                text-[7px]
+                uppercase
+                tracking-[0.15em]
+
+                text-muted-soft
+
+                transition-colors
+                duration-200
+
+                hover:text-accent
+
+                disabled:cursor-default
+                disabled:opacity-40
+                disabled:hover:text-muted-soft
+              "
+            >
+              Clear
+            </button>
+
+            <div
+              className={`
+                mono
+                text-[7px]
+                uppercase
+                tracking-[0.15em]
+
+                ${
+                  isActive
+                    ? "text-accent"
+                    : "text-muted-soft"
+                }
+              `}
+            >
+              {statusLabel}
+            </div>
+          </div>
+        </div>
+
+        {/* =====================================
+            PACKET METADATA
+        ===================================== */}
+
+        <div
+          className="
+            grid
+            grid-cols-2
+
+            divide-x
+            divide-y
+            divide-line-soft
+          "
+        >
+          <Field
+            label="Packet ID"
+            value={packet?.id || "—"}
+          />
+
+          <Field
+            label="Type"
+            value={packet ? "DATA" : "—"}
+          />
+
+          <Field
+            label="Source"
+            value={packet?.source || "Sender"}
+          />
+
+          <Field
+            label="Destination"
+            value={
+              packet?.destination || "Receiver"
+            }
+          />
+
+          <Field
+            label="Size"
+            value={
+              packet
+                ? `${payloadSize} B`
+                : "—"
+            }
+          />
+
+          <Field
+            label="Encoding"
+            value={packet ? "UTF-8" : "—"}
+          />
+        </div>
+
+        {/* =====================================
+            PAYLOAD
+        ===================================== */}
+
+        <InspectorSection
+          label="Payload"
+          meta={
+            packet
+              ? `${payloadSize} bytes · UTF-8`
+              : null
+          }
+        >
+          <div
+            className={`
+              mono
+              min-h-5
+              break-words
+              text-[11px]
+              leading-relaxed
+
+              ${
+                packet
+                  ? "text-accent-soft"
+                  : "text-muted-soft"
+              }
+            `}
+          >
+            {previewPayload}
+          </div>
+        </InspectorSection>
+
+        {/* =====================================
+            RAW / HEX
+        ===================================== */}
+
+        <InspectorSection
+          label="Raw / Hex"
+          meta={
+            packet
+              ? `${payloadSize} bytes`
+              : null
+          }
+        >
+          <div
             className="
               mono
-
-              text-[11px]
-
+              min-h-5
+              break-all
+              text-[9px]
+              leading-relaxed
               text-muted
             "
           >
-            {isOpen ? "−" : "+"}
-          </span>
-        </button>
-
-        {/* Body */}
-
-        {isOpen && (
-          <div>
-            <div
-              className="
-                grid
-                grid-cols-2
-
-                divide-x
-                divide-line-soft
-
-                sm:grid-cols-4
-              "
-            >
-              <PacketField
-                label="Source"
-                value={
-                  packet?.source || "Sender"
-                }
-              />
-
-              <PacketField
-                label="Destination"
-                value={
-                  packet?.destination ||
-                  "Receiver"
-                }
-              />
-
-              <PacketField
-                label="Size"
-                value={`${payloadSize} B`}
-              />
-
-              <PacketField
-                label="Status"
-                value={displayStatus}
-                accent={isActive}
-              />
-            </div>
-
-            <div
-              className="
-                border-t
-                border-line-soft
-
-                px-5
-                py-4
-              "
-            >
-              <div
-                className="
-                  mono
-
-                  text-[8px]
-                  uppercase
-                  tracking-[0.18em]
-
-                  text-muted-soft
-                "
-              >
-                Payload
-              </div>
-
-              <div
-                className="
-                  mono
-
-                  mt-2
-
-                  min-h-6
-
-                  break-all
-
-                  text-sm
-                "
-                style={{
-                  color: isPreview
-                    ? "var(--color-ink)"
-                    : "var(--color-accent)",
-                }}
-              >
-                {payload}
-              </div>
-            </div>
-
-            {packet && (
-              <div
-                className="
-                  border-t
-                  border-line-soft
-
-                  px-5
-                  py-3
-                "
-              >
-                <div
-                  className="
-                    mono
-
-                    text-[8px]
-                    uppercase
-                    tracking-[0.18em]
-
-                    text-muted-soft
-                  "
-                >
-                  Packet ID
-                </div>
-
-                <div
-                  className="
-                    mono
-
-                    mt-1.5
-
-                    break-all
-
-                    text-[10px]
-
-                    text-muted
-                  "
-                >
-                  {packet.id}
-                </div>
-              </div>
-            )}
+            {rawHex}
           </div>
-        )}
+        </InspectorSection>
+
+        {/* =====================================
+            ASCII
+        ===================================== */}
+
+        <InspectorSection label="ASCII">
+          <div
+            className="
+              mono
+              min-h-5
+              break-all
+              text-[10px]
+              leading-relaxed
+              text-ink
+            "
+          >
+            {ascii}
+          </div>
+        </InspectorSection>
+
+        {/* =====================================
+            PACKET LIFECYCLE
+        ===================================== */}
+
+        <div
+          className="
+            border-t
+            border-line-soft
+            px-4
+            py-2.5
+          "
+        >
+          <div
+            className="
+              mono
+              mb-2
+              text-[7px]
+              uppercase
+              tracking-[0.18em]
+              text-muted-soft
+            "
+          >
+            Packet Lifecycle
+          </div>
+
+          <div className="space-y-1.5">
+            {lifecycle.map((step, index) => (
+              <LifecycleStep
+                key={step.label}
+                label={step.label}
+                time={step.time}
+                active={step.active}
+                isLast={index === lifecycle.length - 1}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* =====================================
+            TRANSMISSION NOTE
+        ===================================== */}
+
+        <div
+          className="
+            border-t
+            border-line-soft
+            bg-surface-deep
+            px-4
+            py-2.5
+          "
+        >
+          <div
+            className="
+              flex
+              items-start
+              gap-2
+            "
+          >
+            <span
+              className={`
+                mt-1
+                h-1.5
+                w-1.5
+                shrink-0
+                rounded-full
+
+                ${
+                  isActive
+                    ? "bg-accent"
+                    : "bg-muted"
+                }
+              `}
+            />
+
+            <div
+              className="
+                min-w-0
+                mono
+                text-[8px]
+                leading-relaxed
+                text-muted
+              "
+            >
+              {explanation}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
 }
 
-function PacketField({
-  label,
-  value,
-  accent = false,
-}) {
+/* =========================================
+   FIELD
+========================================= */
+
+function Field({ label, value }) {
   return (
-    <div className="px-4 py-3 sm:px-5">
+    <div
+      className="
+        min-w-0
+        px-3
+        py-2.5
+      "
+    >
       <div
         className="
           mono
-
-          text-[8px]
+          truncate
+          text-[7px]
           uppercase
-          tracking-[0.18em]
-
+          tracking-[0.16em]
           text-muted-soft
         "
       >
@@ -297,24 +448,174 @@ function PacketField({
       </div>
 
       <div
-        className={`
+        className="
           mono
-
-          mt-1.5
-
-          text-[11px]
-          sm:text-xs
-
-          ${
-            accent
-              ? "text-accent"
-              : "text-ink"
-          }
-        `}
+          mt-1
+          break-words
+          text-[9px]
+          leading-tight
+          text-ink
+        "
       >
         {value}
       </div>
     </div>
+  );
+}
+
+/* =========================================
+   INSPECTOR SECTION
+========================================= */
+
+function InspectorSection({
+  label,
+  meta,
+  children,
+}) {
+  return (
+    <div
+      className="
+        border-t
+        border-line-soft
+        px-4
+        py-2.5
+      "
+    >
+      <div
+        className="
+          mb-1.5
+          flex
+          items-center
+          justify-between
+          gap-3
+        "
+      >
+        <div
+          className="
+            mono
+            text-[7px]
+            uppercase
+            tracking-[0.18em]
+            text-muted-soft
+          "
+        >
+          {label}
+        </div>
+
+        {meta && (
+          <div
+            className="
+              mono
+              shrink-0
+              text-[7px]
+              text-muted-soft
+            "
+          >
+            {meta}
+          </div>
+        )}
+      </div>
+
+      {children}
+    </div>
+  );
+}
+
+/* =========================================
+   LIFECYCLE STEP
+========================================= */
+
+function LifecycleStep({
+  label,
+  time,
+  active,
+  isLast,
+}) {
+  return (
+    <div className="relative">
+      <div
+        className="
+          flex
+          items-center
+          gap-2
+        "
+      >
+        <span
+          className={`
+            relative
+            z-10
+            h-1.5
+            w-1.5
+            shrink-0
+            rounded-full
+
+            ${
+              active
+                ? "bg-accent"
+                : "bg-muted"
+            }
+          `}
+        />
+
+        <span
+          className={`
+            mono
+            text-[7px]
+            uppercase
+            tracking-[0.12em]
+
+            ${
+              active
+                ? "text-accent"
+                : "text-muted"
+            }
+          `}
+        >
+          {label}
+        </span>
+
+        <span
+          className="
+            ml-auto
+            mono
+            text-[7px]
+            text-muted-soft
+          "
+        >
+          {formatTime(time)}
+        </span>
+      </div>
+
+      {!isLast && (
+        <div
+          className="
+            absolute
+            left-[2px]
+            top-[7px]
+            h-[calc(100%+6px)]
+            w-px
+            bg-line-soft
+          "
+        />
+      )}
+    </div>
+  );
+}
+
+/* =========================================
+   TIME
+========================================= */
+
+function formatTime(timestamp) {
+  if (!timestamp) return "—";
+
+  return new Date(timestamp).toLocaleTimeString(
+    [],
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }
   );
 }
 

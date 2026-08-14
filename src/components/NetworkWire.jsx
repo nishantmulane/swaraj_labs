@@ -1,194 +1,180 @@
-function NetworkWire({
-  packet,
-  transmission,
-}) {
-  const isTransmitting =
-    transmission.status === "TRANSMITTING";
+function NetworkWire({ packet, transmission }) {
+  const status = transmission?.status || "READY";
 
-  const isReceiving =
-    transmission.status === "RECEIVING";
-
-  const isDelivered =
-    transmission.status === "DELIVERED";
+  const isTransmitting = status === "TRANSMITTING";
+  const isReceiving = status === "RECEIVING";
+  const isDelivered = status === "DELIVERED";
 
   const isActive =
     isTransmitting ||
     isReceiving ||
     isDelivered;
 
+  const packetVisible =
+    Boolean(packet) &&
+    (isTransmitting ||
+      isReceiving ||
+      isDelivered);
+
   return (
     <div
       className="
-        relative
-
         flex
+        w-full
+        shrink-0
         items-center
         justify-center
 
-        h-16
-        w-0
-
-        border-l-2
-        border-dashed
-        border-line
-
-        lg:h-0
-        lg:w-auto
-        lg:flex-1
-
-        lg:border-l-0
-        lg:border-t-2
+        lg:w-[150px]
       "
     >
-      {/* Idle signal */}
+      <div
+        className="
+          relative
+          flex
+          w-full
+          items-center
+          justify-center
 
-      {!isActive && (
-        <span
-          className="
-            ambient-pulse
+          py-3
+        "
+      >
+        {/* =====================================
+            CONNECTION LINE
+        ===================================== */}
 
-            pointer-events-none
-
+        <div
+          className={`
             absolute
             left-0
-            top-0
+            right-0
+            top-1/2
+
+            h-px
+            -translate-y-1/2
+
+            ${
+              isActive
+                ? "bg-accent/60"
+                : "bg-line"
+            }
+          `}
+        />
+
+        {/* =====================================
+            CONNECTION NODE — SENDER SIDE
+        ===================================== */}
+
+        <span
+          className={`
+            absolute
+            left-0
+            top-1/2
 
             h-1.5
             w-1.5
-
+            -translate-y-1/2
             rounded-full
 
-            bg-muted
-
-            blur-[1.5px]
-          "
+            ${
+              isActive
+                ? "bg-accent"
+                : "bg-muted"
+            }
+          `}
         />
-      )}
 
-      {/* Junction */}
+        {/* =====================================
+            CONNECTION NODE — RECEIVER SIDE
+        ===================================== */}
 
-      <span
-        className={`
-          absolute
-          z-10
-
-          h-2.5
-          w-2.5
-
-          rotate-45
-
-          border
-          bg-base
-
-          transition-colors
-          duration-300
-
-          ${
-            isActive
-              ? "border-accent"
-              : "border-line"
-          }
-        `}
-      />
-
-      {/* Travelling packet */}
-
-      {isTransmitting && packet && (
-        <div
-          className="
-            packet
-
-            absolute
-            left-0
-            top-0
-
-            z-20
-
-            flex
-            items-baseline
-            gap-2
-
-            whitespace-nowrap
-
-            border
-            border-accent
-
-            bg-surface
-
-            px-3
-            py-1.5
-
-            mono
-
-            text-[10px]
-            tracking-wide
-
-            shadow-[0_0_14px_-2px_rgba(184,217,74,0.5)]
-          "
-        >
-          <span className="text-accent-soft">
-            {packet.payload}
-          </span>
-
-          <span className="text-muted-soft">
-            {packet.size}B
-          </span>
-        </div>
-      )}
-
-      {/* Receiving */}
-
-      {isReceiving && (
         <span
-          className="
-            mono
-
+          className={`
             absolute
-            z-20
+            right-0
+            top-1/2
 
-            whitespace-nowrap
+            h-1.5
+            w-1.5
+            -translate-y-1/2
+            rounded-full
 
-            bg-surface
+            ${
+              isActive
+                ? "bg-accent"
+                : "bg-muted"
+            }
+          `}
+        />
 
-            px-2
+        {/* =====================================
+            PACKET
+        ===================================== */}
 
-            text-[8px]
-            uppercase
-            tracking-[0.18em]
+        {packetVisible && (
+          <div
+            className="
+              relative
+              z-10
 
-            text-accent
-          "
-        >
-          Receiving
-        </span>
-      )}
+              flex
+              h-7
+              min-w-7
+              items-center
+              justify-center
 
-      {/* Successful delivery */}
+              border
+              border-accent/50
 
-      {isDelivered && (
-        <span
-          className="
-            mono
+              bg-surface-deep
 
-            absolute
-            z-20
+              px-2
 
-            whitespace-nowrap
+              mono
+              text-[7px]
+              uppercase
+              tracking-[0.08em]
 
-            bg-surface
+              text-accent
+            "
+          >
+            {packet?.id || "PKT"}
+          </div>
+        )}
 
-            px-2
+        {/* =====================================
+            READY STATE
+        ===================================== */}
 
-            text-[8px]
-            uppercase
-            tracking-[0.18em]
+        {!packetVisible && (
+          <div
+            className="
+              relative
+              z-10
 
-            text-accent
-          "
-        >
-          Delivered
-        </span>
-      )}
+              flex
+              items-center
+
+              border
+              border-line-soft
+
+              bg-surface-deep
+
+              px-2.5
+              py-1
+
+              mono
+              text-[7px]
+              uppercase
+              tracking-[0.14em]
+
+              text-muted-soft
+            "
+          >
+            Connection
+          </div>
+        )}
+      </div>
     </div>
   );
 }

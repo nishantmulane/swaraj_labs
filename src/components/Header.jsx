@@ -8,23 +8,21 @@ function Header() {
         {/* Brand */}
         <div className="flex items-center gap-4">
 
-          {/* Logo */}
           <img
             src={logo}
             alt="Swaraj Labs"
             className="
-              h-10
-              w-10
+              h-11
+              w-11
               shrink-0
               object-contain
-              opacity-90
+              opacity-95
 
-              sm:h-11
-              sm:w-11
+              sm:h-12
+              sm:w-12
             "
           />
 
-          {/* Wordmark */}
           <div>
             <div className="flex items-baseline gap-3">
               <span
@@ -33,7 +31,6 @@ function Header() {
                   font-semibold
                   tracking-tight
                   text-ink
-
                   sm:text-2xl
                 "
               >
@@ -66,22 +63,43 @@ function Header() {
               by Nishant Mulane
             </div>
           </div>
-
         </div>
 
-        {/* Module */}
-        <div
-          className="
-            mono
-            hidden
-            text-[10px]
-            tracking-[0.18em]
-            text-muted
+        {/* Version / Module */}
+        <div className="hidden items-center gap-4 sm:flex">
 
-            sm:block
-          "
-        >
-          MODULE / 01
+          <span
+            className="
+              mono
+              text-[9px]
+              uppercase
+              tracking-[0.18em]
+              text-muted-soft
+            "
+          >
+            V1.1
+          </span>
+
+          <span
+            className="
+              h-1
+              w-1
+              rounded-full
+              bg-muted
+            "
+          />
+
+          <span
+            className="
+              mono
+              text-[10px]
+              tracking-[0.18em]
+              text-muted
+            "
+          >
+            MODULE / 01
+          </span>
+
         </div>
 
       </div>

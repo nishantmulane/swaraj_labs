@@ -1,14 +1,43 @@
 import { useEffect, useRef, useState } from "react";
 
 function useNetworkSimulation() {
+  // =========================================
+  // MESSAGE / PACKET STATE
+  // =========================================
+
   const [message, setMessage] = useState("HELLO!");
   const [packet, setPacket] = useState(null);
 
+  const [packetCounter, setPacketCounter] = useState(0);
+  const [history, setHistory] = useState([]);
+
+  // =========================================
+  // SESSION STATS
+  // =========================================
+
+  const [packetsSent, setPacketsSent] = useState(0);
+  const [packetsDelivered, setPacketsDelivered] = useState(0);
+  const [dataTransferred, setDataTransferred] = useState(0);
+
+  const [failedPackets] = useState(0);
+
+  // =========================================
+  // TRANSMISSION STATE
+  // =========================================
+
   const [transmission, setTransmission] = useState({
     status: "READY",
+    createdAt: null,
+    sentAt: null,
+    receivingAt: null,
+    deliveredAt: null,
   });
 
   const timersRef = useRef([]);
+
+  // =========================================
+  // TIMER HELPERS
+  // =========================================
 
   function clearTimers() {
     timersRef.current.forEach((timer) => {
@@ -26,6 +55,28 @@ function useNetworkSimulation() {
     return timer;
   }
 
+  // =========================================
+  // CLEAR LAST PACKET
+  // =========================================
+
+  function clearPacket() {
+    clearTimers();
+
+    setPacket(null);
+
+    setTransmission({
+      status: "READY",
+      createdAt: null,
+      sentAt: null,
+      receivingAt: null,
+      deliveredAt: null,
+    });
+  }
+
+  // =========================================
+  // SEND MESSAGE
+  // =========================================
+
   function sendMessage() {
     const payload = message.trim();
 
@@ -33,62 +84,143 @@ function useNetworkSimulation() {
       return;
     }
 
+    const nextPacketNumber = packetCounter + 1;
+    const now = new Date();
+
+    const packetId = `PKT-${String(
+      nextPacketNumber
+    ).padStart(4, "0")}`;
+
+    const payloadSize = new TextEncoder()
+      .encode(payload)
+      .length;
+
     const newPacket = {
-      id: crypto.randomUUID(),
+      id: packetId,
       source: "Sender",
       destination: "Receiver",
       payload,
-      size: new TextEncoder().encode(payload).length,
+      size: payloadSize,
+      createdAt: now.toISOString(),
     };
+
+    // =========================================
+    // CLEAR PREVIOUS TIMERS
+    // =========================================
 
     clearTimers();
 
+    // =========================================
+    // CREATE PACKET
+    // =========================================
+
+    setPacketCounter(nextPacketNumber);
     setPacket(newPacket);
 
-    // -----------------------------------------
-    // 1. TRANSMITTING
-    // -----------------------------------------
+    // =========================================
+    // SESSION STATS
+    // =========================================
+
+    setPacketsSent(
+      (current) => current + 1
+    );
+
+    setDataTransferred(
+      (current) => current + payloadSize
+    );
+
+    // =========================================
+    // TRANSMITTING
+    // =========================================
 
     setTransmission({
       status: "TRANSMITTING",
+
+      createdAt: now.toISOString(),
+      sentAt: now.toISOString(),
+
+      receivingAt: null,
+      deliveredAt: null,
     });
 
-    // -----------------------------------------
-    // 2. RECEIVING
-    // -----------------------------------------
+    // =========================================
+    // RECEIVING
+    // =========================================
 
     schedule(() => {
-      setTransmission({
+      const receivingAt =
+        new Date().toISOString();
+
+      setTransmission((current) => ({
+        ...current,
+
         status: "RECEIVING",
-      });
+
+        receivingAt,
+      }));
     }, 2000);
 
-    // -----------------------------------------
-    // 3. SUCCESSFUL DELIVERY
-    // -----------------------------------------
+    // =========================================
+    // DELIVERED
+    // =========================================
 
     schedule(() => {
-      setTransmission({
+      const deliveredAt =
+        new Date().toISOString();
+
+      setTransmission((current) => ({
+        ...current,
+
         status: "DELIVERED",
-      });
+
+        deliveredAt,
+      }));
+
+      setPacketsDelivered(
+        (current) => current + 1
+      );
+
+      setHistory((current) => [
+        {
+          ...newPacket,
+
+          deliveredAt,
+          status: "DELIVERED",
+        },
+
+        ...current,
+      ]);
     }, 2800);
 
-    // -----------------------------------------
-    // 4. RESET
-    // -----------------------------------------
+    // =========================================
+    // RESET TRANSMISSION STATE
+    // =========================================
+    //
+    // IMPORTANT:
+    // We DO NOT clear packet here.
+    //
+    // Packet Inspector keeps showing
+    // the last packet until the user
+    // explicitly presses CLEAR.
+    // =========================================
 
     schedule(() => {
       setTransmission({
         status: "READY",
+
+        createdAt: null,
+        sentAt: null,
+        receivingAt: null,
+        deliveredAt: null,
       });
 
-      setPacket(null);
-
-      // Clear the old message so the interface
-      // is genuinely ready for a new transmission.
       setMessage("");
     }, 5300);
   }
+
+  // =========================================
+  // CLEANUP
+  // =========================================
 
   useEffect(() => {
     return () => {
@@ -96,11 +228,19 @@ function useNetworkSimulation() {
     };
   }, []);
 
+  // =========================================
+  // DERIVED STATE
+  // =========================================
+
   const isBusy =
     transmission.status !== "READY";
 
   const isDelivered =
     transmission.status === "DELIVERED";
+
+  // =========================================
+  // RETURN
+  // =========================================
 
   return {
     message,
@@ -110,7 +250,17 @@ function useNetworkSimulation() {
 
     transmission,
 
+    history,
+
+    packetCounter,
+
+    packetsSent,
+    packetsDelivered,
+    dataTransferred,
+    failedPackets,
+
     sendMessage,
+    clearPacket,
 
     isBusy,
     isDelivered,

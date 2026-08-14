@@ -6,147 +6,98 @@ function Computer({
   role,
 }) {
   const isSender = role === "sender";
-  const isReceiver = role === "receiver";
-
-  const status = transmission.status;
+  const status = transmission?.status || "READY";
 
   const isTransmitting = status === "TRANSMITTING";
   const isReceiving = status === "RECEIVING";
   const isDelivered = status === "DELIVERED";
 
   const hasDraft = Boolean(draftMessage?.trim());
-  const hasPacket = Boolean(packet);
 
   // =========================================
-  // SENDER STATE
+  // DISPLAY STATE
   // =========================================
 
-  let senderText = hasDraft ? draftMessage : "Awaiting message";
-  let senderScreenLabel = hasDraft ? "Message" : "Endpoint";
-  let senderStatus = "Ready";
+  let displayText = isSender
+    ? hasDraft
+      ? draftMessage
+      : "Awaiting message"
+    : "Awaiting packet";
+
+  let screenLabel = isSender
+    ? hasDraft
+      ? "Message"
+      : "Endpoint"
+    : "Endpoint";
+
+  let statusLabel = isSender ? "Ready" : "Online";
 
   if (isTransmitting) {
-    senderText = packet?.payload || draftMessage;
-    senderScreenLabel = "Transmitting";
-    senderStatus = "Sending...";
+    displayText = packet?.payload || draftMessage || "—";
+    screenLabel = isSender ? "Transmitting" : "Receiving";
+    statusLabel = isSender ? "Sending..." : "Receiving...";
   }
 
   if (isReceiving) {
-    senderText = packet?.payload || draftMessage;
-    senderScreenLabel = "Sent";
-    senderStatus = "Sent";
+    displayText = packet?.payload || draftMessage || "—";
+    screenLabel = isSender ? "Sent" : "Receiving";
+    statusLabel = isSender ? "Sent" : "Receiving...";
   }
 
   if (isDelivered) {
-    senderText = packet?.payload || draftMessage;
-    senderScreenLabel = "Successful";
-    senderStatus = "Sent";
+    displayText = packet?.payload || draftMessage || "—";
+    screenLabel = "Successful";
+    statusLabel = isSender ? "Sent" : "Successful";
   }
-
-  // =========================================
-  // RECEIVER STATE
-  // =========================================
-
-  let receiverText = name;
-  let receiverScreenLabel = "Endpoint";
-  let receiverStatus = "Online";
-
-  if (isTransmitting) {
-    receiverText = packet?.payload || "Receiving...";
-    receiverScreenLabel = "Receiving";
-    receiverStatus = "Receiving...";
-  }
-
-  if (isReceiving) {
-    receiverText = packet?.payload || "Receiving...";
-    receiverScreenLabel = "Receiving";
-    receiverStatus = "Receiving...";
-  }
-
-  if (isDelivered) {
-    receiverText = packet?.payload || "—";
-    receiverScreenLabel = "Successful";
-    receiverStatus = "Successful";
-  }
-
-  // =========================================
-  // FINAL DISPLAY
-  // =========================================
-
-  const displayText = isSender
-    ? senderText
-    : receiverText;
-
-  const screenLabel = isSender
-    ? senderScreenLabel
-    : receiverScreenLabel;
-
-  const statusLabel = isSender
-    ? senderStatus
-    : receiverStatus;
 
   const isActive =
     isTransmitting ||
     isReceiving ||
     isDelivered;
 
-  const showPayload =
-    isSender
-      ? hasDraft || hasPacket
-      : isTransmitting ||
-        isReceiving ||
-        isDelivered;
+  const showPayload = isSender
+    ? hasDraft || Boolean(packet)
+    : isActive;
 
   // =========================================
-  // COLORS
+  // COMPUTER
   // =========================================
-
-  const screenTextColor =
-    isActive
-      ? "var(--color-accent-soft)"
-      : isSender && hasDraft
-        ? "var(--color-ink)"
-        : "var(--color-ink)";
 
   return (
-    <div className="flex shrink-0 flex-col items-center">
-      {/* =========================================
+    <div
+      className="
+        flex
+        w-full
+        max-w-[280px]
+        shrink-0
+        flex-col
+        items-center
+
+        lg:w-[280px]
+      "
+    >
+      {/* =====================================
           MONITOR
-      ========================================= */}
+      ===================================== */}
 
       <div
         className="
-          h-36
-          w-56
+          w-full
 
           border
           border-line
 
           bg-surface
 
-          p-2.5
-
-          sm:h-40
-          sm:w-60
-
-          lg:h-44
-          lg:w-64
+          p-2
         "
       >
-        {/* =========================================
-            SCREEN
-        ========================================= */}
-
         <div
           className="
             relative
 
-            flex
-            h-full
+            aspect-[16/10]
             w-full
-
-            items-center
-            justify-center
 
             overflow-hidden
 
@@ -156,36 +107,36 @@ function Computer({
             bg-surface-deep
           "
         >
-          {/* Screen grid */}
+          {/* ===================================
+              SCREEN GRID
+          =================================== */}
 
           <div
             className="
               pointer-events-none
-
               absolute
               inset-0
-
-              opacity-25
+              opacity-20
 
               bg-[linear-gradient(rgba(154,166,178,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(154,166,178,0.04)_1px,transparent_1px)]
-
-              bg-[size:24px_24px]
+              bg-[size:22px_22px]
             "
           />
 
-          {/* Endpoint label */}
+          {/* ===================================
+              NODE NAME
+          =================================== */}
 
           <div
             className="
               mono
-
               absolute
-              left-2
+              left-2.5
               top-2
 
               text-[8px]
               uppercase
-              tracking-[0.16em]
+              tracking-[0.18em]
 
               text-muted
             "
@@ -193,20 +144,41 @@ function Computer({
             {name}
           </div>
 
-          {/* =========================================
-              SCREEN CONTENT
-          ========================================= */}
+          {/* ===================================
+              NODE ID
+          =================================== */}
 
           <div
             className="
-              relative
+              mono
+              absolute
+              right-2.5
+              top-2
+
+              text-[7px]
+              uppercase
+              tracking-[0.12em]
+
+              text-muted-soft
+            "
+          >
+            {isSender ? "NODE_001" : "NODE_002"}
+          </div>
+
+          {/* ===================================
+              SCREEN CONTENT
+          =================================== */}
+
+          <div
+            className="
+              absolute
+              inset-x-5
+              top-1/2
 
               flex
-              max-w-[85%]
+              -translate-y-1/2
               flex-col
               items-center
-
-              px-3
 
               text-center
             "
@@ -216,9 +188,9 @@ function Computer({
                 mono
                 mb-2
 
-                text-[9px]
+                text-[8px]
                 uppercase
-                tracking-[0.28em]
+                tracking-[0.24em]
 
                 ${
                   isActive
@@ -230,45 +202,28 @@ function Computer({
               {screenLabel}
             </div>
 
-            {showPayload ? (
-              <div
-                className="
-                  mono
+            <div
+              className={`
+                mono
+                max-w-full
+                break-words
+                text-center
+                leading-relaxed
 
-                  break-all
-
-                  text-sm
-                  leading-relaxed
-
-                  sm:text-base
-                "
-                style={{
-                  color: screenTextColor,
-                }}
-              >
-                {displayText}
-              </div>
-            ) : (
-              <div
-                className="
-                  mono
-
-                  text-base
-                  leading-relaxed
-
-                  text-ink
-
-                  sm:text-lg
-                "
-              >
-                {displayText}
-              </div>
-            )}
+                ${
+                  showPayload
+                    ? "text-sm text-accent-soft sm:text-base"
+                    : "text-sm text-ink sm:text-base"
+                }
+              `}
+            >
+              {displayText}
+            </div>
           </div>
 
-          {/* =========================================
+          {/* ===================================
               SCREEN STATUS
-          ========================================= */}
+          =================================== */}
 
           <div
             className="
@@ -298,32 +253,30 @@ function Computer({
             <span
               className="
                 mono
-
-                text-[8px]
+                text-[7px]
                 uppercase
-                tracking-wider
-
+                tracking-[0.14em]
                 text-muted
               "
             >
               {isActive
                 ? "Active"
-                : isReceiver
-                  ? "Online"
-                  : "Ready"}
+                : isSender
+                  ? "Ready"
+                  : "Online"}
             </span>
           </div>
         </div>
       </div>
 
-      {/* =========================================
-          MONITOR STAND
-      ========================================= */}
+      {/* =====================================
+          STAND
+      ===================================== */}
 
       <div
         className="
-          h-6
-          w-8
+          h-5
+          w-7
 
           border-x
           border-line
@@ -332,39 +285,36 @@ function Computer({
         "
       />
 
-      {/* =========================================
-          MONITOR BASE
-      ========================================= */}
+      {/* =====================================
+          BASE
+      ===================================== */}
 
       <div
         className="
-          h-2
+          h-1.5
           w-24
 
           border
           border-line
 
           bg-surface
-
-          sm:w-28
         "
       />
 
-      {/* =========================================
+      {/* =====================================
           EXTERNAL STATUS
-      ========================================= */}
+      ===================================== */}
 
       <div
         className="
-          mt-3
+          mt-2
 
           flex
           items-center
           gap-2
 
           mono
-
-          text-[9px]
+          text-[8px]
           uppercase
           tracking-[0.16em]
 

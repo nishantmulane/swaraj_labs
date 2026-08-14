@@ -6,138 +6,207 @@ function Transmission({
   transmission,
   draftMessage,
 }) {
-  const status = transmission.status;
-
-  const isTransmitting =
-    status === "TRANSMITTING";
-
-  const isReceiving =
-    status === "RECEIVING";
-
-  const isDelivered =
-    status === "DELIVERED";
+  const status = transmission?.status || "READY";
 
   const isActive =
-    isTransmitting ||
-    isReceiving ||
-    isDelivered;
+    status === "TRANSMITTING" ||
+    status === "RECEIVING" ||
+    status === "DELIVERED";
 
-  let networkStatus = "Ready";
-
-  if (isTransmitting) {
-    networkStatus = "Transmitting";
-  } else if (isReceiving) {
-    networkStatus = "Receiving";
-  } else if (isDelivered) {
-    networkStatus = "Successful";
-  }
+  const statusLabel = {
+    READY: "READY",
+    TRANSMITTING: "IN TRANSIT",
+    RECEIVING: "RECEIVING",
+    DELIVERED: "DELIVERED",
+  }[status] || "READY";
 
   return (
-    <section
-      className="
-        px-6
-        pb-12
-        pt-10
+    <section className="flex h-full w-full flex-col">
+      {/* =========================================
+          HEADER
+      ========================================= */}
 
-        sm:px-10
+      <div className="mb-2 flex items-end justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h1
+              className="
+                text-sm
+                font-semibold
+                uppercase
+                tracking-[0.08em]
+                text-ink
+              "
+            >
+              Live Transmission
+            </h1>
 
-        lg:px-16
-        lg:pb-14
-        lg:pt-12
-      "
-    >
-      <div
-        className="
-          mb-7
+            <span
+              className={`
+                h-1.5
+                w-1.5
+                shrink-0
+                rounded-full
+                ${isActive ? "bg-accent" : "bg-muted"}
+              `}
+            />
+          </div>
 
-          flex
-          items-center
-          justify-between
-
-          border-b
-          border-line-soft
-
-          pb-3
-        "
-      >
-        <div
-          className="
-            mono
-
-            text-[9px]
-            uppercase
-            tracking-[0.2em]
-
-            text-muted
-          "
-        >
-          Transmission
+          <div
+            className="
+              mono
+              mt-1
+              text-[8px]
+              uppercase
+              tracking-[0.18em]
+              text-muted-soft
+            "
+          >
+            Sender → Packet → Receiver
+          </div>
         </div>
 
         <div
-          className="
+          className={`
             mono
-
-            flex
-            items-center
-            gap-2
-
-            text-[9px]
+            shrink-0
+            text-[8px]
             uppercase
             tracking-[0.15em]
-
-            text-muted
-          "
+            ${isActive ? "text-accent" : "text-muted"}
+          `}
         >
-          <span
-            className={`
-              h-1.5
-              w-1.5
-              rounded-full
-
-              ${
-                isActive
-                  ? "bg-accent"
-                  : "bg-muted"
-              }
-            `}
-          />
-
-          {networkStatus}
+          {statusLabel}
         </div>
       </div>
 
+      {/* =========================================
+          TRANSMISSION STAGE
+      ========================================= */}
+
       <div
         className="
           flex
+          flex-1
           flex-col
-          items-center
-          gap-8
 
-          lg:flex-row
-          lg:gap-7
+          border
+          border-line-soft
+          bg-surface
+
+          px-3
+          py-4
+
+          sm:px-4
+          sm:py-5
+
+          lg:px-5
+          lg:py-5
         "
       >
-        <Computer
-          name="Sender"
-          role="sender"
-          packet={packet}
-          transmission={transmission}
-          draftMessage={draftMessage}
-        />
+        {/* =====================================
+            NETWORK STAGE
+        ===================================== */}
 
-        <NetworkWire
-          packet={packet}
-          transmission={transmission}
-        />
+        <div
+          className="
+            flex
+            flex-1
+            items-center
+            justify-center
+          "
+        >
+          <div
+            className="
+              flex
+              w-full
+              flex-col
+              items-center
+              justify-center
+              gap-4
 
-        <Computer
-          name="Receiver"
-          role="receiver"
-          packet={packet}
-          transmission={transmission}
-          draftMessage={draftMessage}
-        />
+              lg:flex-row
+              lg:gap-3
+            "
+          >
+            {/* SENDER */}
+
+            <Computer
+              name="Sender"
+              role="sender"
+              packet={packet}
+              transmission={transmission}
+              draftMessage={draftMessage}
+            />
+
+            {/* CONNECTION */}
+
+            <div
+              className="
+                flex
+                shrink-0
+                items-center
+                justify-center
+
+                lg:min-w-[150px]
+              "
+            >
+              <NetworkWire
+                packet={packet}
+                transmission={transmission}
+              />
+            </div>
+
+            {/* RECEIVER */}
+
+            <Computer
+              name="Receiver"
+              role="receiver"
+              packet={packet}
+              transmission={transmission}
+              draftMessage={draftMessage}
+            />
+          </div>
+        </div>
+
+        {/* =========================================
+            CONNECTION LABEL
+        ========================================= */}
+
+        <div className="mt-3 flex shrink-0 justify-center">
+          <div
+            className="
+              inline-flex
+              items-center
+
+              border
+              border-line-soft
+              bg-surface-deep
+
+              px-3
+              py-1
+
+              mono
+              text-[8px]
+              uppercase
+              tracking-[0.16em]
+
+              text-muted
+            "
+          >
+            <span className="text-accent-soft">
+              LOCAL
+            </span>
+
+            <span className="mx-2 text-muted-soft">
+              •
+            </span>
+
+            <span>
+              DIRECT CONNECTION
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   );

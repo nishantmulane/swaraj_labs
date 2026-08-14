@@ -1,40 +1,46 @@
 function Footer() {
   return (
-    <footer
-      className="
-        mx-6
-        mt-10
+    <footer className="px-6 pb-5 pt-6 sm:px-10 lg:px-16">
+      <div
+        className="
+          flex
+          flex-col
+          gap-2
 
-        flex
-        items-center
-        justify-between
+          border-t
+          border-line-soft
 
-        border-t
-        border-line-soft
+          pt-3
 
-        py-5
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+        "
+      >
+        <div
+          className="
+            mono
+            text-[7px]
+            uppercase
+            tracking-[0.16em]
+            text-muted-soft
+          "
+        >
+          Swaraj Labs
+        </div>
 
-        mono
-
-        text-[8px]
-        uppercase
-        tracking-[0.16em]
-
-        text-muted
-
-        sm:mx-10
-        sm:text-[9px]
-
-        lg:mx-16
-      "
-    >
-      <span>
-        Protocol: Local
-      </span>
-
-      <span>
-        Connection: Direct
-      </span>
+        <div
+          className="
+            mono
+            text-[7px]
+            uppercase
+            tracking-[0.14em]
+            text-muted-soft
+          "
+        >
+          Network Transmission Lab
+        </div>
+      </div>
     </footer>
   );
 }
