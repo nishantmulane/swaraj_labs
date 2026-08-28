@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Swaraj Labs</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      overflow: hidden;
+      background: #0b0f0d;
+      color: #d8ded9;
+
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    .mono {
+      font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace;
+    }
+
+
+    /* =====================================================
+       INTRO
+    ===================================================== */
+
+    .intro {
+      position: fixed;
+      inset: 0;
+
+      z-index: 100;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: #0b0f0d;
+
+      transition:
+        opacity 800ms ease,
+        visibility 800ms ease;
+    }
+
+    .intro.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+
+    /* =====================================================
+       VERY SUBTLE ATMOSPHERE
+    ===================================================== */
+
+    .intro::before {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      pointer-events: none;
+
+      background-image:
+        linear-gradient(
+          rgba(183, 215, 192, 0.018) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(183, 215, 192, 0.018) 1px,
+          transparent 1px
+        );
+
+      background-size: 48px 48px;
+
+      mask-image:
+        radial-gradient(
+          ellipse at center,
+          black,
+          transparent 72%
+        );
+    }
+
+
+    /* =====================================================
+       INTRO CONTENT
+    ===================================================== */
+
+    .intro-content {
+      position: relative;
+
+      z-index: 2;
+
+      text-align: center;
+    }
+
+
+    /* =====================================================
+       SWARAJ LABS
+    ===================================================== */
+
+    .intro-title {
+      opacity: 0;
+
+      transform:
+        translateY(10px)
+        scale(0.98);
+
+      letter-spacing: 0.18em;
+
+      animation:
+        titleReveal 900ms
+        cubic-bezier(0.2, 0.8, 0.2, 1)
+        forwards;
+    }
+
+
+    @keyframes titleReveal {
+      to {
+        opacity: 1;
+
+        transform:
+          translateY(0)
+          scale(1);
+      }
+    }
+
+
+    /* =====================================================
+       AUTHOR
+    ===================================================== */
+
+    .intro-author {
+      margin-top: 18px;
+
+      opacity: 0;
+
+      transform:
+        translateY(8px);
+
+      letter-spacing: 0.34em;
+
+      animation:
+        authorReveal 700ms ease forwards;
+
+      animation-delay:
+        700ms;
+    }
+
+
+    @keyframes authorReveal {
+      0% {
+        opacity: 0;
+
+        transform:
+          translateY(8px);
+
+        letter-spacing:
+          0.24em;
+      }
+
+      100% {
+        opacity: 1;
+
+        transform:
+          translateY(0);
+
+        letter-spacing:
+          0.34em;
+      }
+    }
+
+
+    /* =====================================================
+       SHELL
+    ===================================================== */
+
+    .shell {
+      position: fixed;
+      inset: 0;
+
+      z-index: 90;
+
+      background: #0b0f0d;
+
+      perspective: 1400px;
+
+      opacity: 0;
+
+      transition:
+        opacity 500ms ease;
+    }
+
+    .shell.ready {
+      opacity: 1;
+    }
+
+
+    /* =====================================================
+       SHELL PANELS
+    ===================================================== */
+
+    .shell-panel {
+      position: absolute;
+
+      top: 0;
+
+      width: 50%;
+      height: 100%;
+
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(183, 215, 192, 0.035),
+          transparent 58%
+        ),
+        #0b0f0d;
+
+      transition:
+        transform
+        1200ms
+        cubic-bezier(
+          0.76,
+          0,
+          0.18,
+          1
+        );
+    }
+
+
+    .shell-left {
+      left: 0;
+
+      transform-origin: right center;
+
+      border-right:
+        1px solid
+        rgba(183, 215, 192, 0.08);
+    }
+
+
+    .shell-right {
+      right: 0;
+
+      transform-origin: left center;
+
+      border-left:
+        1px solid
+        rgba(183, 215, 192, 0.08);
+    }
+
+
+    /* =====================================================
+       SHELL CENTER SEAM
+    ===================================================== */
+
+    .shell-seam {
+      position: absolute;
+
+      left: 50%;
+      top: 50%;
+
+      width: 1px;
+      height: 0;
+
+      transform:
+        translate(-50%, -50%);
+
+      background: #9ab2a1;
+
+      opacity: 0;
+
+      box-shadow:
+        0 0 12px
+        rgba(183, 215, 192, 0.25);
+
+      transition:
+        height 600ms ease,
+        opacity 400ms ease,
+        box-shadow 400ms ease;
+    }
+
+
+    .shell.ready .shell-seam {
+      height: 55%;
+
+      opacity: 0.32;
+    }
+
+
+    /* =====================================================
+       CENTER GLOW
+    ===================================================== */
+
+    .shell-glow {
+      position: absolute;
+
+      left: 50%;
+      top: 50%;
+
+      width: 90px;
+      height: 90px;
+
+      transform:
+        translate(-50%, -50%);
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(183, 215, 192, 0.12),
+          transparent 68%
+        );
+
+      opacity: 0;
+
+      transition:
+        opacity 500ms ease,
+        transform 700ms ease;
+    }
+
+
+    .shell.ready .shell-glow {
+      opacity: 1;
+
+      animation:
+        shellPulse
+        3s
+        ease-in-out
+        infinite;
+    }
+
+
+    @keyframes shellPulse {
+
+      0%,
+      100% {
+        transform:
+          translate(-50%, -50%)
+          scale(0.8);
+
+        opacity: 0.45;
+      }
+
+      50% {
+        transform:
+          translate(-50%, -50%)
+          scale(1.2);
+
+        opacity: 0.8;
+      }
+    }
+
+
+    /* =====================================================
+       BREAK BUTTON
+    ===================================================== */
+
+    .break-button {
+      position: absolute;
+
+      left: 50%;
+      top: 50%;
+
+      width: 68px;
+      height: 68px;
+
+      transform:
+        translate(-50%, -50%);
+
+      border:
+        1px solid
+        rgba(183, 215, 192, 0.55);
+
+      background: transparent;
+
+      cursor: pointer;
+
+      transition:
+        transform 250ms ease,
+        border-color 250ms ease,
+        box-shadow 250ms ease;
+    }
+
+
+    .break-button::before {
+      content: "";
+
+      position: absolute;
+
+      inset: 17px;
+
+      border:
+        1px solid
+        rgba(183, 215, 192, 0.48);
+
+      transform:
+        rotate(45deg);
+
+      transition:
+        transform 350ms ease;
+    }
+
+
+    .break-button:hover {
+      transform:
+        translate(-50%, -50%)
+        scale(1.08);
+
+      border-color:
+        #d5e9da;
+
+      box-shadow:
+        0 0 30px
+        rgba(183, 215, 192, 0.22);
+    }
+
+
+    .break-button:hover::before {
+      transform:
+        rotate(45deg)
+        scale(1.08);
+    }
+
+
+    .break-button:focus-visible {
+      outline: none;
+
+      box-shadow:
+        0 0 0 4px
+        rgba(183, 215, 192, 0.12),
+
+        0 0 30px
+        rgba(183, 215, 192, 0.3);
+    }
+
+
+    /* =====================================================
+       BREAK INSTRUCTION
+    ===================================================== */
+
+    .instruction {
+      position: absolute;
+
+      left: 50%;
+
+      top:
+        calc(50% + 60px);
+
+      transform:
+        translate(-50%, 7px);
+
+      white-space: nowrap;
+
+      opacity: 0;
+
+      transition:
+        opacity 450ms ease,
+        transform 450ms ease;
+    }
+
+
+    .shell.ready .instruction {
+      opacity: 1;
+
+      transform:
+        translate(-50%, 0);
+    }
+
+
+    .shell.breaking .instruction {
+      opacity: 0;
+
+      transform:
+        translate(-50%, -5px);
+    }
+
+
+    /* =====================================================
+       BREAK IMPACT
+    ===================================================== */
+
+    .shell.breaking .shell-seam {
+      height: 82%;
+
+      opacity: 1;
+
+      box-shadow:
+        0 0 30px
+        rgba(183, 215, 192, 0.55);
+    }
+
+
+    .shell.breaking .shell-glow {
+      opacity: 1;
+
+      transform:
+        translate(-50%, -50%)
+        scale(1.7);
+    }
+
+
+    .shell.breaking .break-button {
+      transform:
+        translate(-50%, -50%)
+        scale(1.18);
+
+      border-color:
+        #dcefe0;
+
+      box-shadow:
+        0 0 45px
+        rgba(183, 215, 192, 0.42);
+    }
+
+
+    .shell.breaking .break-button::before {
+      transform:
+        rotate(90deg)
+        scale(0.7);
+    }
+
+
+    /* =====================================================
+       SHELL OPEN
+    ===================================================== */
+
+    .shell.open .shell-left {
+      transform:
+        translateX(-100%)
+        rotateY(-6deg);
+    }
+
+
+    .shell.open .shell-right {
+      transform:
+        translateX(100%)
+        rotateY(6deg);
+    }
+
+
+    .shell.open .break-button {
+      opacity: 0;
+
+      transform:
+        translate(-50%, -50%)
+        scale(1.35);
+    }
+
+
+    /* =====================================================
+       HOME
+    ===================================================== */
+
+    /*
+      This represents your EXISTING Home page.
+      Replace the contents with your real Home UI.
+    */
+
+    .home {
+      position: fixed;
+      inset: 0;
+
+      z-index: 1;
+
+      background: #0b0f0d;
+
+      opacity: 0;
+
+      transition:
+        opacity 900ms ease;
+    }
+
+
+    .home.visible {
+      opacity: 1;
+    }
+
+
+    /* =====================================================
+       MOBILE
+    ===================================================== */
+
+    @media (max-width: 640px) {
+
+      .intro-title {
+        font-size: 25px;
+
+        letter-spacing:
+          0.16em;
+      }
+
+
+      .intro-author {
+        margin-top: 15px;
+
+        font-size: 8px;
+
+        letter-spacing:
+          0.25em;
+      }
+
+
+      .break-button {
+        width: 58px;
+        height: 58px;
+      }
+
+
+      .break-button::before {
+        inset: 14px;
+      }
+
+
+      .instruction {
+        top:
+          calc(50% + 52px);
+
+        font-size: 7px;
+      }
+    }
+
+
+    /* =====================================================
+       SHORT SCREEN
+    ===================================================== */
+
+    @media (max-height: 600px) {
+
+      .intro-title {
+        font-size: 25px;
+      }
+
+      .intro-author {
+        margin-top: 12px;
+      }
+    }
+
+
+    /* =====================================================
+       REDUCED MOTION
+    ===================================================== */
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration:
+          0.01ms !important;
+
+        animation-iteration-count:
+          1 !important;
+
+        transition-duration:
+          0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+
+<body>
+
+
+  <!-- =====================================================
+       1. BRAND INTRO
+  ===================================================== -->
+
+  <div
+    id="intro"
+    class="intro"
+  >
+
+    <div class="intro-content">
+
+      <div
+        class="intro-title"
+        style="
+          font-size:
+            clamp(25px, 4vw, 36px);
+
+          font-weight: 600;
+
+          text-transform:
+            uppercase;
+        "
+      >
+        Swaraj Labs
+      </div>
+
+
+      <div
+        class="
+          intro-author
+          mono
+        "
+        style="
+          font-size:
+            clamp(8px, 1.2vw, 11px);
+
+          font-weight: 500;
+
+          text-transform:
+            uppercase;
+
+          color:
+            #a8c4af;
+        "
+      >
+        By Nishant Mulane
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       2. SHELL
+  ===================================================== -->
+
+  <div
+    id="shell"
+    class="shell"
+  >
+
+    <!-- LEFT HALF -->
+
+    <div
+      class="
+        shell-panel
+        shell-left
+      "
+    ></div>
+
+
+    <!-- RIGHT HALF -->
+
+    <div
+      class="
+        shell-panel
+        shell-right
+      "
+    ></div>
+
+
+    <!-- CENTER SEAM -->
+
+    <div
+      class="shell-seam"
+      aria-hidden="true"
+    ></div>
+
+
+    <!-- GLOW -->
+
+    <div
+      class="shell-glow"
+      aria-hidden="true"
+    ></div>
+
+
+    <!-- BREAK CONTROL -->
+
+    <button
+      id="breakButton"
+      class="break-button"
+      type="button"
+      aria-label="Break the shell and enter Swaraj Labs"
+    ></button>
+
+
+    <!-- INSTRUCTION -->
+
+    <div
+      class="
+        instruction
+        mono
+      "
+      style="
+        font-size: 8px;
+
+        text-transform:
+          uppercase;
+
+        letter-spacing:
+          0.22em;
+
+        color:
+          #9ab2a1;
+      "
+    >
+      Click to break
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       3. YOUR REAL HOME PAGE
+  ===================================================== -->
+
+  <main
+    id="home"
+    class="home"
+  >
+
+    <!--
+      IMPORTANT:
+
+      Put your EXISTING Swaraj Labs Home page here.
+
+      Nothing else is intentionally added.
+    -->
+
+  </main>
+
+
+  <script>
+
+    const intro =
+      document.getElementById(
+        "intro"
+      );
+
+    const shell =
+      document.getElementById(
+        "shell"
+      );
+
+    const breakButton =
+      document.getElementById(
+        "breakButton"
+      );
+
+    const home =
+      document.getElementById(
+        "home"
+      );
+
+
+    let shellBroken = false;
+
+
+    /* =====================================================
+       INTRO TIMELINE
+    ===================================================== */
+
+    /*
+      0.00s
+      Swaraj Labs appears
+
+      0.70s
+      By Nishant Mulane appears
+
+      2.60s
+      Intro fades
+
+      3.10s
+      Shell becomes visible
+
+      3.60s
+      Shell is ready
+    */
+
+
+    window.setTimeout(() => {
+
+      intro.classList.add(
+        "hidden"
+      );
+
+    }, 2600);
+
+
+    window.setTimeout(() => {
+
+      shell.classList.add(
+        "ready"
+      );
+
+    }, 3100);
+
+
+    /* =====================================================
+       BREAK SHELL
+    ===================================================== */
+
+    function breakShell() {
+
+      if (shellBroken) {
+        return;
+      }
+
+      shellBroken = true;
+
+
+      /*
+        Phase 1:
+        crack / impact
+      */
+
+      shell.classList.add(
+        "breaking"
+      );
+
+
+      /*
+        Phase 2:
+        reveal Home underneath
+      */
+
+      window.setTimeout(() => {
+
+        home.classList.add(
+          "visible"
+        );
+
+      }, 450);
+
+
+      /*
+        Phase 3:
+        open shell
+      */
+
+      window.setTimeout(() => {
+
+        shell.classList.add(
+          "open"
+        );
+
+      }, 500);
+
+
+      /*
+        Phase 4:
+        remove shell
+      */
+
+      window.setTimeout(() => {
+
+        shell.style.display =
+          "none";
+
+      }, 1750);
+
+    }
+
+
+    /* =====================================================
+       CLICK
+    ===================================================== */
+
+    breakButton.addEventListener(
+      "click",
+      breakShell
+    );
+
+
+    /* =====================================================
+       KEYBOARD
+    ===================================================== */
+
+    breakButton.addEventListener(
+      "keydown",
+      (event) => {
+
+        if (
+          event.key === "Enter" ||
+          event.key === " "
+        ) {
+
+          event.preventDefault();
+
+          breakShell();
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>

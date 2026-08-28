@@ -2,6 +2,7 @@
 
 @import "tailwindcss";
 
+
 @theme {
   --color-base: #11161c;
   --color-surface: #171e26;
@@ -22,14 +23,17 @@
   --color-muted-soft: #8e9ba7;
 }
 
+
 :root {
   font-family: "Space Grotesk", sans-serif;
   color-scheme: dark;
 }
 
+
 * {
   box-sizing: border-box;
 }
+
 
 html,
 body,
@@ -39,109 +43,361 @@ body,
   margin: 0;
 }
 
+
 body {
   min-height: 100vh;
+
   background: var(--color-base);
+
   color: var(--color-ink);
 }
+
 
 button,
 input {
   font: inherit;
 }
 
+
 button {
   cursor: pointer;
 }
+
 
 button:disabled {
   cursor: not-allowed;
 }
 
+
 .mono {
   font-family: "JetBrains Mono", monospace;
 }
+
+
+/* =====================================================
+   HOME BACKGROUND
+===================================================== */
 
 .network-grid {
   background-color: var(--color-base);
 
   background-image:
-    linear-gradient(rgba(154, 166, 178, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(154, 166, 178, 0.035) 1px, transparent 1px);
+    linear-gradient(
+      rgba(154, 166, 178, 0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(154, 166, 178, 0.035) 1px,
+      transparent 1px
+    );
 
   background-size: 48px 48px;
 }
+
+
+/* =====================================================
+   PACKET ANIMATIONS
+===================================================== */
 
 @keyframes move-horizontal {
   from {
     left: 0;
     transform: translateY(-50%);
   }
+
   to {
     left: 100%;
     transform: translate(-100%, -50%);
   }
 }
 
+
 @keyframes move-vertical {
   from {
     top: 0;
     transform: translate(-50%, 0);
   }
+
   to {
     top: 100%;
     transform: translate(-50%, -100%);
   }
 }
 
+
 .packet {
-  animation: move-vertical 2s linear forwards;
+  animation:
+    move-vertical
+    2s
+    linear
+    forwards;
 }
+
 
 @keyframes drift-vertical {
   0% {
     top: -4%;
     opacity: 0;
   }
+
   10% {
     opacity: 0.6;
   }
+
   90% {
     opacity: 0.6;
   }
+
   100% {
     top: 104%;
     opacity: 0;
   }
 }
 
+
 @keyframes drift-horizontal {
   0% {
     left: -4%;
     opacity: 0;
   }
+
   10% {
     opacity: 0.6;
   }
+
   90% {
     opacity: 0.6;
   }
+
   100% {
     left: 104%;
     opacity: 0;
   }
 }
 
+
 .ambient-pulse {
-  animation: drift-vertical 3.2s ease-in-out infinite;
+  animation:
+    drift-vertical
+    3.2s
+    ease-in-out
+    infinite;
 }
 
+
 @media (min-width: 1024px) {
+
   .packet {
-    animation: move-horizontal 2s linear forwards;
+    animation:
+      move-horizontal
+      2s
+      linear
+      forwards;
   }
 
   .ambient-pulse {
-    animation: drift-horizontal 3.2s ease-in-out infinite;
+    animation:
+      drift-horizontal
+      3.2s
+      ease-in-out
+      infinite;
+  }
+}
+
+
+/* =====================================================
+   ENTRY — TITLE
+===================================================== */
+
+@keyframes entry-title {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(10px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+.animate-entry-title {
+  opacity: 0;
+
+  animation:
+    entry-title
+    900ms
+    cubic-bezier(0.2, 0.8, 0.2, 1)
+    1;
+
+  animation-fill-mode: both;
+}
+
+
+/* =====================================================
+   ENTRY — AUTHOR
+===================================================== */
+
+@keyframes entry-author {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(8px);
+
+    letter-spacing:
+      0.24em;
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+
+    letter-spacing:
+      0.34em;
+  }
+}
+
+
+.animate-entry-author {
+  opacity: 0;
+
+  transform:
+    translateY(8px);
+
+  letter-spacing:
+    0.24em;
+
+  animation:
+    entry-author
+    700ms
+    ease
+    1;
+
+  animation-delay:
+    1s;
+
+  animation-fill-mode:
+    both;
+}
+
+
+/* =====================================================
+   SHELL PULSE
+===================================================== */
+
+@keyframes shell-pulse {
+  0%,
+  100% {
+    transform:
+      translate(-50%, -50%)
+      scale(0.8);
+
+    opacity: 0.35;
+  }
+
+  50% {
+    transform:
+      translate(-50%, -50%)
+      scale(1.2);
+
+    opacity: 0.7;
+  }
+}
+
+
+.animate-shell-pulse {
+  animation:
+    shell-pulse
+    3s
+    ease-in-out
+    infinite;
+}
+
+
+/* =====================================================
+   CURSOR AMBIENT LIGHT
+===================================================== */
+/* 
+.cursor-glow {
+  position: fixed;
+
+  width: 280px;
+  height: 280px;
+
+  pointer-events: none;
+
+  z-index: 20;
+
+  transform:
+    translate(-50%, -50%);
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+
+      rgba(184, 217, 74, 0.09) 0%,
+
+      rgba(184, 217, 74, 0.045) 30%,
+
+      rgba(184, 217, 74, 0.015) 52%,
+
+      transparent 72%
+    );
+
+  filter:
+    blur(5px);
+
+  transition:
+    opacity 400ms ease;
+
+  will-change:
+    left,
+    top;
+} */
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 640px) {
+
+  .cursor-glow {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+
+/* =====================================================
+   REDUCED MOTION
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration:
+      0.01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      0.01ms !important;
   }
 }

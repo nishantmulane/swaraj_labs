@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import Header from "./components/Header";
 import Transmission from "./components/Transmission";
 import PacketInspector from "./components/PacketInspector";
@@ -7,10 +9,14 @@ import WhatsHappening from "./components/WhatsHappening";
 import KeyConcepts from "./components/KeyConcepts";
 import TryThis from "./components/TryThis";
 import Footer from "./components/Footer";
+import EntryTransition from "./components/EntryTransition";
 
 import useNetworkSimulation from "./hooks/useNetworkSimulation";
 
+
 function App() {
+  const [entered, setEntered] = useState(false);
+
   const {
     message,
     setMessage,
@@ -27,14 +33,47 @@ function App() {
     failedPackets,
   } = useNetworkSimulation();
 
+
   return (
     <main className="network-grid min-h-screen">
-      <div className="mx-auto w-full max-w-7xl">
-        {/* =========================================
-            HEADER
-        ========================================= */}
+
+      {/* =========================================
+          ENTRY TRANSITION
+      ========================================= */}
+
+      {!entered && (
+        <EntryTransition
+          onComplete={() => setEntered(true)}
+        />
+      )}
+
+
+      {/* =========================================
+          HOME
+      ========================================= */}
+
+      <div
+        className={`
+          mx-auto
+          w-full
+          max-w-7xl
+
+          transition-all
+          duration-700
+          ease-out
+
+          ${
+            entered
+              ? "translate-y-0 opacity-100"
+              : "pointer-events-none translate-y-2 opacity-0"
+          }
+        `}
+      >
+
+        {/* HEADER */}
 
         <Header />
+
 
         {/* =========================================
             PRIMARY LAB
@@ -52,15 +91,12 @@ function App() {
             className="
               grid
               gap-4
-
               lg:grid-cols-[minmax(0,1fr)_320px]
-
               lg:items-stretch
             "
           >
-            {/* =====================================
-                LEFT — TRANSMISSION
-            ===================================== */}
+
+            {/* TRANSMISSION */}
 
             <div
               className="
@@ -69,6 +105,7 @@ function App() {
                 flex-col
               "
             >
+
               <Transmission
                 packet={packet}
                 transmission={transmission}
@@ -76,18 +113,20 @@ function App() {
               />
 
               <div className="mt-3">
+
                 <MessageControl
                   message={message}
                   setMessage={setMessage}
                   sendMessage={sendMessage}
                   isSending={isBusy}
                 />
+
               </div>
+
             </div>
 
-            {/* =====================================
-                RIGHT — PACKET INSPECTOR
-            ===================================== */}
+
+            {/* PACKET INSPECTOR */}
 
             <aside
               className="
@@ -95,15 +134,19 @@ function App() {
                 min-w-0
               "
             >
+
               <PacketInspector
                 packet={packet}
                 draftMessage={message}
                 transmission={transmission}
                 onClear={clearPacket}
               />
+
             </aside>
+
           </div>
         </section>
+
 
         {/* =========================================
             SUPPORTING INFORMATION
@@ -117,6 +160,7 @@ function App() {
             lg:px-8
           "
         >
+
           <div
             className="
               grid
@@ -128,6 +172,7 @@ function App() {
               xl:auto-rows-fr
             "
           >
+
             <WhatsHappening
               packet={packet}
               transmission={transmission}
@@ -143,14 +188,18 @@ function App() {
               dataTransferred={dataTransferred}
               failedPackets={failedPackets}
             />
+
           </div>
+
         </section>
+
 
         {/* =========================================
             RECENT TRANSMISSIONS
         ========================================= */}
 
         {history.length > 0 && (
+
           <section
             className="
               mt-4
@@ -159,6 +208,7 @@ function App() {
               lg:px-8
             "
           >
+
             <div
               className="
                 overflow-hidden
@@ -166,8 +216,10 @@ function App() {
                 border-line-soft
                 bg-surface
               "
+
             >
-              {/* Header */}
+
+              {/* HEADER */}
 
               <div
                 className="
@@ -182,6 +234,7 @@ function App() {
                   py-2.5
                 "
               >
+
                 <div
                   className="
                     mono
@@ -205,12 +258,16 @@ function App() {
                 >
                   {history.length} packets
                 </span>
+
               </div>
 
-              {/* Table */}
+
+              {/* TABLE */}
 
               <div className="overflow-x-auto">
+
                 <div className="min-w-[560px]">
+
                   <div
                     className="
                       grid
@@ -229,14 +286,18 @@ function App() {
                       text-muted-soft
                     "
                   >
+
                     <span>ID</span>
                     <span>Time</span>
                     <span>Message</span>
                     <span>Size</span>
                     <span>Status</span>
+
                   </div>
 
+
                   {history.slice(0, 4).map((item) => (
+
                     <div
                       key={item.id}
                       className="
@@ -256,6 +317,7 @@ function App() {
                         text-muted
                       "
                     >
+
                       <span className="text-accent-soft">
                         {item.id}
                       </span>
@@ -264,7 +326,13 @@ function App() {
                         {item.time || "—"}
                       </span>
 
-                      <span className="truncate pr-3 text-ink">
+                      <span
+                        className="
+                          truncate
+                          pr-3
+                          text-ink
+                        "
+                      >
                         {item.payload}
                       </span>
 
@@ -275,20 +343,28 @@ function App() {
                       <span className="text-accent">
                         {item.status}
                       </span>
+
                     </div>
+
                   ))}
+
                 </div>
+
               </div>
+
             </div>
+
           </section>
+
         )}
 
-        {/* =========================================
-            FOOTER
-        ========================================= */}
+
+        {/* FOOTER */}
 
         <Footer />
+
       </div>
+
     </main>
   );
 }
