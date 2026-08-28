@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import logo from "../assets/swaraj-logo.svg";
 
 function EntryTransition({ onComplete }) {
   const [introVisible, setIntroVisible] = useState(true);
@@ -43,15 +44,8 @@ function EntryTransition({ onComplete }) {
       clearTimeout(introTimer);
       clearTimeout(shellTimer);
 
-      window.removeEventListener(
-        "mousemove",
-        handleMouseMove
-      );
-
-      window.removeEventListener(
-        "mouseleave",
-        handleMouseLeave
-      );
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
     };
   }, []);
 
@@ -60,12 +54,12 @@ function EntryTransition({ onComplete }) {
 
     setBreaking(true);
 
-    // Impact / crack phase
+    // Crack / impact phase
     setTimeout(() => {
       setOpen(true);
     }, 750);
 
-    // Reveal Home after page movement begins
+    // Reveal Home while the pages are opening
     setTimeout(() => {
       onComplete();
     }, 1550);
@@ -99,11 +93,44 @@ function EntryTransition({ onComplete }) {
           }
         `}
       >
-        <div className="text-center">
+        <div className="flex flex-col items-center text-center">
+
+          {/* =====================================
+              LOGO
+          ===================================== */}
+
+          <img
+            src={logo}
+            alt="Swaraj Labs"
+            className="
+              animate-entry-logo
+
+              h-24
+              w-24
+
+              sm:h-28
+              sm:w-28
+
+              md:h-32
+              md:w-32
+
+              lg:h-36
+              lg:w-36
+
+              object-contain
+              opacity-95
+            "
+          />
+
+          {/* =====================================
+              SWARAJ LABS
+          ===================================== */}
 
           <div
             className="
               animate-entry-title
+
+              mt-5
 
               text-[clamp(25px,4vw,36px)]
               font-semibold
@@ -115,6 +142,10 @@ function EntryTransition({ onComplete }) {
           >
             Swaraj Labs
           </div>
+
+          {/* =====================================
+              BY NISHANT MULANE
+          ===================================== */}
 
           <div
             className="
@@ -138,7 +169,7 @@ function EntryTransition({ onComplete }) {
 
 
       {/* =========================================
-          SHELL
+          SHELL / BOOK
       ========================================= */}
 
       <div
@@ -164,7 +195,9 @@ function EntryTransition({ onComplete }) {
         `}
       >
 
-        {/* Cursor ambient light */}
+        {/* =====================================
+            CURSOR AMBIENT LIGHT
+        ===================================== */}
 
         <div
           className={`
