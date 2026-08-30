@@ -1,440 +1,867 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
-function NetworkWire({ packet, transmission, onInspect }) {
+function NetworkWire({
+  packet,
+  transmission,
+  onInspect,
+}) {
   const status = transmission?.status || "READY";
 
-  const isTransmitting = status === "TRANSMITTING";
-  const isReceiving = status === "RECEIVING";
-  const isDelivered = status === "DELIVERED";
-
   const isActive =
-    isTransmitting ||
-    isReceiving ||
-    isDelivered;
+    status === "TRANSMITTING" ||
+    status === "RECEIVING" ||
+    status === "DELIVERED";
 
-  const packetVisible =
-    Boolean(packet) && isActive;
+  const showPacket =
+    Boolean(packet) &&
+    (
+      status === "TRANSMITTING" ||
+      status === "RECEIVING" ||
+      status === "DELIVERED"
+    );
 
   /*
-   * -------------------------------------------------
-   * PACKET POSITION
-   *
-   * The packet starts at the sender.
-   * Once transmission begins, it travels all the
-   * way across the wire.
-   * -------------------------------------------------
+   * =========================================================
+   * PACKET DATA
+   * =========================================================
    */
 
-  const [packetPosition, setPacketPosition] = useState(0);
+  const packetId =
+    packet?.id ||
+    packet?.packetId ||
+    "PKT-0001";
+
+  const packetMessage =
+    packet?.message ||
+    packet?.payload ||
+    "HELLO!";
+
+
+  /*
+   * =========================================================
+   * PACKET POSITION
+   *
+   * IMPORTANT:
+   * These values control ONLY horizontal movement.
+   *
+   * Vertical packet placement is handled by the packet card.
+   * Do not add translateY here.
+   * =========================================================
+   */
+
+  const [packetProgress, setPacketProgress] = useState(0);
+
+  /*
+   * =========================================================
+   * ACTIVE NETWORK NODE
+   *
+   * null
+   * router01
+   * router02
+   * gateway
+   * =========================================================
+   */
+
+  const [activeNode, setActiveNode] = useState(null);
+
+
+  /*
+   * =========================================================
+   * TRANSMISSION JOURNEY
+   * =========================================================
+   */
 
   useEffect(() => {
-    if (!packet) {
-      setPacketPosition(0);
+    if (status === "READY") {
+      setPacketProgress(0);
+      setActiveNode(null);
       return;
     }
 
-    if (isTransmitting) {
-      // Always begin from the sender.
-      setPacketPosition(0);
+    if (status === "TRANSMITTING") {
+      setPacketProgress(0);
+      setActiveNode(null);
 
-      // Start movement on the next paint frame.
-      const frame = requestAnimationFrame(() => {
-        setPacketPosition(100);
-      });
+      /*
+       * -----------------------------------------------
+       * ENTER NETWORK
+       * -----------------------------------------------
+       */
 
-      return () => cancelAnimationFrame(frame);
+      const router01 = setTimeout(() => {
+        setPacketProgress(8);
+        setActiveNode("router01");
+      }, 350);
+
+
+      /*
+       * -----------------------------------------------
+       * LEAVE ROUTER 01
+       * -----------------------------------------------
+       */
+
+      const leaveRouter01 = setTimeout(() => {
+        setActiveNode(null);
+      }, 600);
+
+
+      /*
+       * -----------------------------------------------
+       * REACH ROUTER 02
+       * -----------------------------------------------
+       */
+
+      const router02 = setTimeout(() => {
+        setPacketProgress(50);
+        setActiveNode("router02");
+      }, 1050);
+
+
+      /*
+       * -----------------------------------------------
+       * LEAVE ROUTER 02
+       * -----------------------------------------------
+       */
+
+      const leaveRouter02 = setTimeout(() => {
+        setActiveNode(null);
+      }, 1300);
+
+
+      /*
+       * -----------------------------------------------
+       * REACH GATEWAY
+       * -----------------------------------------------
+       */
+
+      const gateway = setTimeout(() => {
+        setPacketProgress(88);
+        setActiveNode("gateway");
+      }, 1750);
+
+
+      /*
+       * -----------------------------------------------
+       * LEAVE GATEWAY
+       * -----------------------------------------------
+       */
+
+      const leaveGateway = setTimeout(() => {
+        setActiveNode(null);
+      }, 2000);
+
+
+      return () => {
+        clearTimeout(router01);
+        clearTimeout(leaveRouter01);
+        clearTimeout(router02);
+        clearTimeout(leaveRouter02);
+        clearTimeout(gateway);
+        clearTimeout(leaveGateway);
+      };
     }
 
-    if (isReceiving || isDelivered) {
-      setPacketPosition(100);
+
+    /*
+     * =====================================================
+     * RECEIVING
+     * =====================================================
+     */
+
+    if (status === "RECEIVING") {
+      setPacketProgress(88);
+      setActiveNode("gateway");
+      return;
     }
-  }, [packet?.id, isTransmitting, isReceiving, isDelivered]);
+
+
+    /*
+     * =====================================================
+     * DELIVERED
+     * =====================================================
+     */
+
+    if (status === "DELIVERED") {
+      setPacketProgress(88);
+      setActiveNode(null);
+    }
+
+  }, [status]);
+
 
   /*
-   * -------------------------------------------------
-   * NETWORK STATES
-   * -------------------------------------------------
+   * =========================================================
+   * RENDER
+   * =========================================================
    */
-
-  const senderLit =
-    isTransmitting ||
-    isReceiving ||
-    isDelivered;
-
-  const receiverLit =
-    isReceiving ||
-    isDelivered;
-
-  /*
-   * -------------------------------------------------
-   * CONNECTION PROGRESS
-   * -------------------------------------------------
-   */
-
-  const connectionProgress =
-    packetVisible
-      ? packetPosition
-      : 0;
 
   return (
     <div
       className="
-        flex
+        relative
+        h-[150px]
         w-full
-        shrink-0
-        items-center
-        justify-center
-
-        lg:w-[150px]
+        min-w-0
       "
     >
+
+      {/* =====================================================
+          NETWORK LINE
+      ===================================================== */}
+
+      <div
+        className={`
+          absolute
+          left-0
+          right-0
+          top-1/2
+          h-px
+          -translate-y-1/2
+
+          ${
+            isActive
+              ? "bg-accent/40"
+              : "bg-line"
+          }
+
+          transition-colors
+          duration-300
+        `}
+      />
+
+
+      {/* =====================================================
+          ROUTER 01
+      ===================================================== */}
+
       <div
         className="
-          relative
-          flex
-          w-full
-          items-center
-          justify-center
+          absolute
+          left-[8%]
+          top-1/2
+          z-10
 
-          py-3
+          flex
+          -translate-x-1/2
+          -translate-y-1/2
+          flex-col
+          items-center
         "
       >
 
-        {/* =========================================
-            BASE CONNECTION
-        ========================================= */}
+        <div
+          className={`
+            relative
+
+            flex
+            h-10
+            w-10
+            items-center
+            justify-center
+
+            border
+
+            bg-surface
+
+            transition-all
+            duration-200
+
+            ${
+              activeNode === "router01"
+                ? "scale-105 border-accent shadow-[0_0_18px_rgba(184,217,74,0.18)]"
+                : "border-line"
+            }
+          `}
+        >
+
+          {/* PROCESSING RING */}
+
+          {activeNode === "router01" && (
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-[-5px]
+
+                rounded-full
+
+                border
+                border-accent/50
+
+                animate-ping
+              "
+            />
+          )}
+
+
+          {/* NODE */}
+
+          <span
+            className={`
+              h-2
+              w-2
+              rounded-full
+
+              transition-all
+              duration-200
+
+              ${
+                activeNode === "router01"
+                  ? "scale-150 bg-accent shadow-[0_0_14px_rgba(184,217,74,0.85)]"
+                  : "bg-muted"
+              }
+            `}
+          />
+
+        </div>
+
+
+        {/* LABEL */}
+
+        <div
+          className={`
+            mono
+            mt-2
+            text-center
+            text-[7px]
+            uppercase
+            tracking-[0.12em]
+
+            ${
+              activeNode === "router01"
+                ? "text-accent"
+                : "text-muted"
+            }
+          `}
+        >
+          ROUTER 01
+        </div>
+
+
+        {/* SUBLABEL */}
 
         <div
           className="
-            absolute
-            left-0
-            right-0
-            top-1/2
-
-            h-px
-            -translate-y-1/2
-
-            bg-line
+            mono
+            mt-0.5
+            text-center
+            text-[6px]
+            uppercase
+            tracking-[0.12em]
+            text-muted-soft
           "
-        />
+        >
+          {activeNode === "router01"
+            ? "PROCESSING"
+            : "ROUTER"}
+        </div>
 
-        {/* =========================================
-            ACTIVE CONNECTION
-        ========================================= */}
+      </div>
+
+
+      {/* =====================================================
+          ROUTER 02
+      ===================================================== */}
+
+      <div
+        className="
+          absolute
+          left-1/2
+          top-1/2
+          z-10
+
+          flex
+          -translate-x-1/2
+          -translate-y-1/2
+          flex-col
+          items-center
+        "
+      >
+
+        <div
+          className={`
+            relative
+
+            flex
+            h-10
+            w-10
+            items-center
+            justify-center
+
+            border
+
+            bg-surface
+
+            transition-all
+            duration-200
+
+            ${
+              activeNode === "router02"
+                ? "scale-105 border-accent shadow-[0_0_18px_rgba(184,217,74,0.18)]"
+                : "border-line"
+            }
+          `}
+        >
+
+          {/* PROCESSING RING */}
+
+          {activeNode === "router02" && (
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-[-5px]
+
+                rounded-full
+
+                border
+                border-accent/50
+
+                animate-ping
+              "
+            />
+          )}
+
+
+          {/* NODE */}
+
+          <span
+            className={`
+              h-2
+              w-2
+              rounded-full
+
+              transition-all
+              duration-200
+
+              ${
+                activeNode === "router02"
+                  ? "scale-150 bg-accent shadow-[0_0_14px_rgba(184,217,74,0.85)]"
+                  : "bg-muted"
+              }
+            `}
+          />
+
+        </div>
+
+
+        {/* LABEL */}
+
+        <div
+          className={`
+            mono
+            mt-2
+            text-center
+            text-[7px]
+            uppercase
+            tracking-[0.12em]
+
+            ${
+              activeNode === "router02"
+                ? "text-accent"
+                : "text-muted"
+            }
+          `}
+        >
+          ROUTER 02
+        </div>
+
+
+        {/* SUBLABEL */}
 
         <div
           className="
-            absolute
-            left-0
-            top-1/2
-
-            h-px
-            -translate-y-1/2
-
-            bg-accent
-
-            transition-[width]
-            duration-[1800ms]
-            ease-[cubic-bezier(0.4,0,0.2,1)]
+            mono
+            mt-0.5
+            text-center
+            text-[6px]
+            uppercase
+            tracking-[0.12em]
+            text-muted-soft
           "
-          style={{
-            width: `${connectionProgress}%`,
-          }}
-        />
+        >
+          {activeNode === "router02"
+            ? "PROCESSING"
+            : "ROUTER"}
+        </div>
 
-        {/* =========================================
-            SENDER NODE
-        ========================================= */}
+      </div>
 
-        <span
+
+      {/* =====================================================
+          GATEWAY
+      ===================================================== */}
+
+      <div
+        className="
+          absolute
+          right-[8%]
+          top-1/2
+          z-10
+
+          flex
+          -translate-x-1/2
+          -translate-y-1/2
+          flex-col
+          items-center
+        "
+      >
+
+        <div
           className={`
-            absolute
-            left-0
-            top-1/2
+            relative
 
-            h-1.5
-            w-1.5
+            flex
+            h-10
+            w-10
+            items-center
+            justify-center
 
-            -translate-y-1/2
-            rounded-full
+            border
+
+            bg-surface
 
             transition-all
-            duration-300
+            duration-200
 
             ${
-              senderLit
-                ? `
-                  scale-125
-                  bg-accent
-                  shadow-[0_0_10px_rgba(184,217,74,0.65)]
-                `
-                : "bg-muted"
+              activeNode === "gateway"
+                ? "scale-105 border-accent shadow-[0_0_18px_rgba(184,217,74,0.18)]"
+                : "border-line"
             }
           `}
-        />
+        >
 
-        {/* =========================================
-            RECEIVER NODE
-        ========================================= */}
+          {/* PROCESSING RING */}
+
+          {activeNode === "gateway" && (
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-[-5px]
+
+                rounded-full
+
+                border
+                border-accent/50
+
+                animate-ping
+              "
+            />
+          )}
+
+
+          {/* NODE */}
+
+          <span
+            className={`
+              h-2
+              w-2
+              rounded-full
+
+              transition-all
+              duration-200
+
+              ${
+                activeNode === "gateway"
+                  ? "scale-150 bg-accent shadow-[0_0_14px_rgba(184,217,74,0.85)]"
+                  : "bg-muted"
+              }
+            `}
+          />
+
+        </div>
+
+
+        {/* LABEL */}
+
+        <div
+          className={`
+            mono
+            mt-2
+            text-center
+            text-[7px]
+            uppercase
+            tracking-[0.12em]
+
+            ${
+              activeNode === "gateway"
+                ? "text-accent"
+                : "text-muted"
+            }
+          `}
+        >
+          GATEWAY
+        </div>
+
+
+        {/* SUBLABEL */}
+
+        <div
+          className="
+            mono
+            mt-0.5
+            text-center
+            text-[6px]
+            uppercase
+            tracking-[0.12em]
+            text-muted-soft
+          "
+        >
+          {activeNode === "gateway"
+            ? "EDGE HANDOFF"
+            : "EDGE"}
+        </div>
+
+      </div>
+
+
+      {/* =====================================================
+          LOCAL NETWORK LABEL
+      ===================================================== */}
+
+      <div
+        className="
+          absolute
+          left-1/2
+          top-[calc(50%+35px)]
+          -translate-x-1/2
+        "
+      >
 
         <span
-          className={`
+          className="
+            mono
+            whitespace-nowrap
+            text-[6px]
+            uppercase
+            tracking-[0.15em]
+            text-muted-soft
+          "
+        >
+          LOCAL NETWORK
+        </span>
+
+      </div>
+
+
+      {/* =====================================================
+          PACKET
+      ===================================================== */}
+
+      {showPacket && (
+        <div
+          className="
+            pointer-events-none
             absolute
-            right-0
-            top-1/2
+            inset-0
+            z-30
+          "
+        >
 
-            h-1.5
-            w-1.5
+          {/* =================================================
+              PACKET ANCHOR
 
-            -translate-y-1/2
-            rounded-full
+              IMPORTANT:
+              The anchor sits directly on the network line.
 
-            transition-all
-            duration-300
+              ONLY LEFT changes.
 
-            ${
-              receiverLit
-                ? `
-                  scale-125
-                  bg-accent
-                  shadow-[0_0_10px_rgba(184,217,74,0.65)]
-                `
-                : "bg-muted"
-            }
-          `}
-        />
+              NO VERTICAL TRANSFORM HERE.
+          ================================================= */}
 
-        {/* =========================================
-            PACKET
-        ========================================= */}
-
-        {packetVisible && (
           <div
             className="
-              group
-
               absolute
-              z-10
+              top-1/2
 
               transition-[left]
-              duration-[1800ms]
-
-              ease-[cubic-bezier(0.4,0,0.2,1)]
+              duration-700
+              ease-in-out
             "
             style={{
-              left: `${packetPosition}%`,
-              transform: "translateX(-50%)",
+              left: `${packetProgress}%`,
             }}
           >
 
-            {/* -------------------------------------
-                SUBTLE PACKET TRAIL
-            ------------------------------------- */}
-
-            {isTransmitting && (
-              <span
-                className="
-                  pointer-events-none
-
-                  absolute
-                  right-full
-                  top-1/2
-
-                  h-px
-                  w-5
-
-                  -translate-y-1/2
-
-                  bg-accent/30
-
-                  blur-[1px]
-                "
-              />
-            )}
-
-            {/* -------------------------------------
-                INSPECTION HINT
-            ------------------------------------- */}
-
-            {isTransmitting && (
-              <div
-                className="
-                  pointer-events-none
-
-                  absolute
-                  left-1/2
-                  top-full
-
-                  mt-3
-
-                  -translate-x-1/2
-
-                  whitespace-nowrap
-
-                  opacity-0
-
-                  transition-opacity
-                  duration-300
-
-                  group-hover:opacity-100
-                "
-              >
-                <span
-                  className="
-                    mono
-
-                    text-[6px]
-                    uppercase
-                    tracking-[0.18em]
-
-                    text-accent-soft
-                  "
-                >
-                  ↓ Click to inspect
-                </span>
-              </div>
-            )}
-
-            {/* -------------------------------------
-                PACKET BODY
-            ------------------------------------- */}
+            {/* =================================================
+                PACKET CARD
+            ================================================= */}
 
             <button
               type="button"
               onClick={onInspect}
               className="
+                pointer-events-auto
+
                 relative
 
                 flex
-                min-h-10
-                min-w-10
+                h-[72px]
+                w-[142px]
+
+                -translate-x-1/2
+                -translate-y-[108px]
 
                 flex-col
                 items-center
                 justify-center
 
                 border
-                border-accent/70
+                border-cyan-400/70
 
-                bg-surface-deep
+                bg-[#17242d]/95
 
-                px-3
-                py-1.5
-
-                mono
+                shadow-[0_0_30px_rgba(34,211,238,0.22)]
 
                 transition-all
-                duration-300
+                duration-200
 
-                hover:border-accent
-                hover:bg-accent-deep
-
-                hover:shadow-[0_0_20px_rgba(184,217,74,0.18)]
-
-                focus:outline-none
-                focus:ring-1
-                focus:ring-accent/70
+                hover:border-cyan-300
+                hover:shadow-[0_0_38px_rgba(34,211,238,0.32)]
               "
-              aria-haspopup="dialog"
-              aria-label={`Inspect packet ${packet?.id || ""}`}
             >
+              {/* TOP ACCENT */}
 
-              {/* subtle internal glow */}
+              <span
+                className="
+                  absolute
+                  -top-[7px]
+                  left-1/2
+
+                  h-px
+                  w-[70%]
+
+                  -translate-x-1/2
+
+                  bg-cyan-400/60
+                "
+              />
+
+              {/* LEFT ACCENT */}
+
+              <span
+                className="
+                  absolute
+                  -left-[7px]
+                  top-1/2
+
+                  h-[70%]
+                  w-px
+
+                  -translate-y-1/2
+
+                  bg-cyan-400/60
+                "
+              />
+
+              {/* RIGHT ACCENT */}
+
+              <span
+                className="
+                  absolute
+                  -right-[7px]
+                  top-1/2
+
+                  h-[70%]
+                  w-px
+
+                  -translate-y-1/2
+
+                  bg-cyan-400/60
+                "
+              />
+
+              {/* PACKET ID */}
+
+              <span
+                className="
+                  mono
+                  text-[11px]
+                  font-medium
+                  uppercase
+                  tracking-[0.14em]
+                  text-cyan-300
+                "
+              >
+                {packetId}
+              </span>
+
+              {/* PAYLOAD */}
+
+              <span
+                className="
+                  mono
+                  mt-1
+                  max-w-[110px]
+                  truncate
+                  text-[9px]
+                  uppercase
+                  tracking-[0.1em]
+                  text-muted-soft
+                "
+              >
+                {packetMessage}
+              </span>
+
+
+              {/* =========================================
+                  PACKET → NETWORK CONNECTOR
+
+                  IMPORTANT:
+                  This is INSIDE the packet card.
+                  Therefore left-1/2 is always the
+                  exact horizontal center of the card.
+              ========================================= */}
 
               <span
                 className="
                   pointer-events-none
-
                   absolute
-                  inset-0
+                  left-1/2
+                  top-full
 
-                  bg-[radial-gradient(circle_at_center,rgba(184,217,74,0.10),transparent_70%)]
+                  h-[36px]
+                  w-px
 
-                  opacity-0
+                  -translate-x-1/2
 
-                  transition-opacity
-                  duration-300
-
-                  group-hover:opacity-100
-                "
-              />
-
-              {/* packet ID */}
-
-              <span
-                className="
-                  relative
-
-                  text-[8px]
-                  font-medium
-                  uppercase
-                  tracking-[0.12em]
-
-                  text-accent
+                  bg-cyan-400/70
                 "
               >
-                {packet?.id || "PKT"}
-              </span>
-
-              {/* payload */}
-
-              {packet?.payload && (
                 <span
                   className="
-                    relative
+                    absolute
 
-                    mt-0.5
+                    bottom-0
+                    left-1/2
 
-                    max-w-[70px]
+                    h-2
+                    w-2
 
-                    truncate
+                    -translate-x-1/2
+                    translate-y-1/2
 
-                    text-[6px]
-                    uppercase
-                    tracking-[0.08em]
+                    rounded-full
 
-                    text-accent-soft
+                    bg-cyan-300
+
+                    shadow-[0_0_12px_rgba(34,211,238,0.9)]
                   "
-                >
-                  {packet.payload}
-                </span>
-              )}
+                />
+
+              </span>
 
             </button>
+
+
+
           </div>
-        )}
 
-        {/* =========================================
-            READY STATE
-        ========================================= */}
+        </div>
+      )}
 
-        {!packetVisible && (
-          <div
-            className="
-              relative
-              z-10
-
-              border
-              border-line-soft
-
-              bg-surface-deep
-
-              px-2.5
-              py-1
-
-              mono
-              text-[7px]
-              uppercase
-              tracking-[0.14em]
-
-              text-muted-soft
-            "
-          >
-            Network Ready
-          </div>
-        )}
-
-      </div>
     </div>
   );
 }

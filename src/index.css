@@ -5,6 +5,7 @@
 
 @theme {
   --color-base: #11161c;
+
   --color-surface: #171e26;
   --color-surface-raised: #1d2630;
   --color-surface-deep: #12181e;
@@ -130,6 +131,14 @@ button:disabled {
 }
 
 
+/*
+ * Legacy packet animation.
+ *
+ * The live NetworkWire packet currently uses
+ * React stage positions + CSS transitions,
+ * so this class is kept for compatibility.
+ */
+
 .packet {
   animation:
     move-vertical
@@ -141,6 +150,19 @@ button:disabled {
     top,
     left,
     transform;
+}
+
+
+@media (min-width: 1024px) {
+
+  .packet {
+    animation:
+      move-horizontal
+      2s
+      linear
+      forwards;
+  }
+
 }
 
 
@@ -201,14 +223,6 @@ button:disabled {
 
 @media (min-width: 1024px) {
 
-  .packet {
-    animation:
-      move-horizontal
-      2s
-      linear
-      forwards;
-  }
-
   .ambient-pulse {
     animation:
       drift-horizontal
@@ -216,6 +230,7 @@ button:disabled {
       ease-in-out
       infinite;
   }
+
 }
 
 
@@ -392,4 +407,5 @@ button:disabled {
     transition-duration:
       0.01ms !important;
   }
+
 }

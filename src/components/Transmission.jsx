@@ -7,7 +7,8 @@ function Transmission({
   draftMessage,
   onInspect,
 }) {
-  const status = transmission?.status || "READY";
+  const status =
+    transmission?.status || "READY";
 
   const isActive =
     status === "TRANSMITTING" ||
@@ -27,25 +28,52 @@ function Transmission({
   ========================================= */
 
   const journeyMessage = {
-    READY: "Ready to send your message",
-    TRANSMITTING: "Your packet is crossing the network",
-    RECEIVING: "Your packet has reached the receiver",
-    DELIVERED: "Your message has been delivered",
+    READY:
+      "Ready to send your message",
+
+    TRANSMITTING:
+      "Your packet is crossing the network",
+
+    RECEIVING:
+      "Your packet has reached the receiver",
+
+    DELIVERED:
+      "Your message has been delivered",
   }[status];
 
 
   return (
-    <section className="flex h-full w-full flex-col">
+    <section
+      className="
+        flex
+        h-full
+        w-full
+        flex-col
+      "
+    >
 
       {/* =========================================
           HEADER
       ========================================= */}
 
-      <div className="mb-2 flex items-end justify-between">
+      <div
+        className="
+          mb-2
+          flex
+          items-end
+          justify-between
+        "
+      >
 
         <div className="min-w-0">
 
-          <div className="flex items-center gap-2">
+          <div
+            className="
+              flex
+              items-center
+              gap-2
+            "
+          >
 
             <h1
               className="
@@ -66,19 +94,26 @@ function Transmission({
                 shrink-0
                 rounded-full
 
-                ${isActive ? "bg-accent" : "bg-muted"}
+                ${
+                  isActive
+                    ? "bg-accent"
+                    : "bg-muted"
+                }
               `}
             />
 
           </div>
 
+
           <div
             className="
               mono
               mt-1
+
               text-[8px]
               uppercase
               tracking-[0.18em]
+
               text-muted-soft
             "
           >
@@ -87,6 +122,8 @@ function Transmission({
 
         </div>
 
+
+        {/* STATUS */}
 
         <div
           className={`
@@ -97,7 +134,11 @@ function Transmission({
             uppercase
             tracking-[0.15em]
 
-            ${isActive ? "text-accent" : "text-muted"}
+            ${
+              isActive
+                ? "text-accent"
+                : "text-muted"
+            }
           `}
         >
           {statusLabel}
@@ -118,6 +159,7 @@ function Transmission({
 
           border
           border-line-soft
+
           bg-surface
 
           px-4
@@ -138,14 +180,14 @@ function Transmission({
         <div
           className="
             flex
-            min-h-[360px]
+            min-h-[340px]
             flex-1
             items-center
             justify-center
 
-            sm:min-h-[400px]
+            sm:min-h-[370px]
 
-            lg:min-h-[430px]
+            lg:min-h-[400px]
           "
         >
 
@@ -168,7 +210,9 @@ function Transmission({
             "
           >
 
-            {/* SENDER */}
+            {/* =================================
+                SENDER
+            ================================= */}
 
             <div
               className="
@@ -180,6 +224,7 @@ function Transmission({
                 lg:shrink-0
               "
             >
+
               <Computer
                 name="Sender"
                 role="sender"
@@ -187,10 +232,13 @@ function Transmission({
                 transmission={transmission}
                 draftMessage={draftMessage}
               />
+
             </div>
 
 
-            {/* NETWORK */}
+            {/* =================================
+                NETWORK
+            ================================= */}
 
             <div
               className="
@@ -203,15 +251,19 @@ function Transmission({
                 lg:min-w-[260px]
               "
             >
+
               <NetworkWire
                 packet={packet}
                 transmission={transmission}
                 onInspect={onInspect}
               />
+
             </div>
 
 
-            {/* RECEIVER */}
+            {/* =================================
+                RECEIVER
+            ================================= */}
 
             <div
               className="
@@ -223,6 +275,7 @@ function Transmission({
                 lg:shrink-0
               "
             >
+
               <Computer
                 name="Receiver"
                 role="receiver"
@@ -230,6 +283,7 @@ function Transmission({
                 transmission={transmission}
                 draftMessage={draftMessage}
               />
+
             </div>
 
           </div>
@@ -241,7 +295,14 @@ function Transmission({
             CONNECTION LABEL
         ========================================= */}
 
-        <div className="mt-3 flex shrink-0 justify-center">
+        <div
+          className="
+            mt-3
+            flex
+            shrink-0
+            justify-center
+          "
+        >
 
           <div
             className="
@@ -250,12 +311,14 @@ function Transmission({
 
               border
               border-line-soft
+
               bg-surface-deep
 
               px-3
               py-1
 
               mono
+
               text-[8px]
               uppercase
               tracking-[0.16em]
@@ -268,7 +331,12 @@ function Transmission({
               LOCAL
             </span>
 
-            <span className="mx-2 text-muted-soft">
+            <span
+              className="
+                mx-2
+                text-muted-soft
+              "
+            >
               •
             </span>
 
@@ -301,9 +369,10 @@ function Transmission({
           key={status}
           className="
             mono
-            text-center
 
+            text-center
             text-[8px]
+
             uppercase
             tracking-[0.15em]
 
