@@ -5,6 +5,7 @@ function Transmission({
   packet,
   transmission,
   draftMessage,
+  onInspect,
 }) {
   const status = transmission?.status || "READY";
 
@@ -20,15 +21,32 @@ function Transmission({
     DELIVERED: "DELIVERED",
   }[status] || "READY";
 
+
+  /* =========================================
+     TRANSMISSION EXPLANATION
+  ========================================= */
+
+  const journeyMessage = {
+    READY: "Ready to send your message",
+    TRANSMITTING: "Your packet is crossing the network",
+    RECEIVING: "Your packet has reached the receiver",
+    DELIVERED: "Your message has been delivered",
+  }[status];
+
+
   return (
     <section className="flex h-full w-full flex-col">
+
       {/* =========================================
           HEADER
       ========================================= */}
 
       <div className="mb-2 flex items-end justify-between">
+
         <div className="min-w-0">
+
           <div className="flex items-center gap-2">
+
             <h1
               className="
                 text-sm
@@ -47,9 +65,11 @@ function Transmission({
                 w-1.5
                 shrink-0
                 rounded-full
+
                 ${isActive ? "bg-accent" : "bg-muted"}
               `}
             />
+
           </div>
 
           <div
@@ -64,21 +84,27 @@ function Transmission({
           >
             Sender → Packet → Receiver
           </div>
+
         </div>
+
 
         <div
           className={`
             mono
             shrink-0
+
             text-[8px]
             uppercase
             tracking-[0.15em]
+
             ${isActive ? "text-accent" : "text-muted"}
           `}
         >
           {statusLabel}
         </div>
+
       </div>
+
 
       {/* =========================================
           TRANSMISSION STAGE
@@ -94,16 +120,17 @@ function Transmission({
           border-line-soft
           bg-surface
 
-          px-3
-          py-4
+          px-4
+          py-5
 
-          sm:px-4
-          sm:py-5
+          sm:px-6
+          sm:py-6
 
-          lg:px-5
-          lg:py-5
+          lg:px-8
+          lg:py-7
         "
       >
+
         {/* =====================================
             NETWORK STAGE
         ===================================== */}
@@ -111,69 +138,111 @@ function Transmission({
         <div
           className="
             flex
+            min-h-[360px]
             flex-1
             items-center
             justify-center
+
+            sm:min-h-[400px]
+
+            lg:min-h-[430px]
           "
         >
+
           <div
             className="
               flex
               w-full
+              max-w-[1100px]
+
               flex-col
               items-center
               justify-center
-              gap-4
+
+              gap-8
+
+              sm:gap-10
 
               lg:flex-row
-              lg:gap-3
+              lg:gap-8
             "
           >
+
             {/* SENDER */}
-
-            <Computer
-              name="Sender"
-              role="sender"
-              packet={packet}
-              transmission={transmission}
-              draftMessage={draftMessage}
-            />
-
-            {/* CONNECTION */}
 
             <div
               className="
                 flex
-                shrink-0
+                w-full
+                justify-center
+
+                lg:w-[280px]
+                lg:shrink-0
+              "
+            >
+              <Computer
+                name="Sender"
+                role="sender"
+                packet={packet}
+                transmission={transmission}
+                draftMessage={draftMessage}
+              />
+            </div>
+
+
+            {/* NETWORK */}
+
+            <div
+              className="
+                flex
+                min-w-0
+                flex-1
                 items-center
                 justify-center
 
-                lg:min-w-[150px]
+                lg:min-w-[260px]
               "
             >
               <NetworkWire
                 packet={packet}
                 transmission={transmission}
+                onInspect={onInspect}
               />
             </div>
 
+
             {/* RECEIVER */}
 
-            <Computer
-              name="Receiver"
-              role="receiver"
-              packet={packet}
-              transmission={transmission}
-              draftMessage={draftMessage}
-            />
+            <div
+              className="
+                flex
+                w-full
+                justify-center
+
+                lg:w-[280px]
+                lg:shrink-0
+              "
+            >
+              <Computer
+                name="Receiver"
+                role="receiver"
+                packet={packet}
+                transmission={transmission}
+                draftMessage={draftMessage}
+              />
+            </div>
+
           </div>
+
         </div>
+
 
         {/* =========================================
             CONNECTION LABEL
         ========================================= */}
 
         <div className="mt-3 flex shrink-0 justify-center">
+
           <div
             className="
               inline-flex
@@ -194,6 +263,7 @@ function Transmission({
               text-muted
             "
           >
+
             <span className="text-accent-soft">
               LOCAL
             </span>
@@ -205,9 +275,49 @@ function Transmission({
             <span>
               DIRECT CONNECTION
             </span>
+
           </div>
+
         </div>
+
       </div>
+
+
+      {/* =========================================
+          LIVE JOURNEY MESSAGE
+      ========================================= */}
+
+      <div
+        className="
+          mt-2
+          flex
+          min-h-[18px]
+          items-center
+          justify-center
+        "
+      >
+
+        <p
+          key={status}
+          className="
+            mono
+            text-center
+
+            text-[8px]
+            uppercase
+            tracking-[0.15em]
+
+            text-muted-soft
+
+            transition-opacity
+            duration-300
+          "
+        >
+          {journeyMessage}
+        </p>
+
+      </div>
+
     </section>
   );
 }

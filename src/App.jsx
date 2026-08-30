@@ -1,21 +1,22 @@
 import { useState } from "react";
 
 import Header from "./components/Header";
-import Transmission from "./components/Transmission";
-import PacketInspector from "./components/PacketInspector";
-import MessageControl from "./components/MessageControl";
-import SessionStats from "./components/SessionStats";
-import WhatsHappening from "./components/WhatsHappening";
-import KeyConcepts from "./components/KeyConcepts";
-import TryThis from "./components/TryThis";
 import Footer from "./components/Footer";
+import TryThis from "./components/TryThis";
+import KeyConcepts from "./components/KeyConcepts";
+import SessionStats from "./components/SessionStats";
+import Transmission from "./components/Transmission";
+import MessageControl from "./components/MessageControl";
+import WhatsHappening from "./components/WhatsHappening";
+import PacketInspector from "./components/PacketInspector";
 import EntryTransition from "./components/EntryTransition";
-
 import useNetworkSimulation from "./hooks/useNetworkSimulation";
 
 
 function App() {
+  
   const [entered, setEntered] = useState(false);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
 
   const {
     message,
@@ -25,7 +26,6 @@ function App() {
     sendMessage,
     isBusy,
     clearPacket,
-
     history,
     packetsSent,
     packetsDelivered,
@@ -89,63 +89,48 @@ function App() {
         >
           <div
             className="
-              grid
-              gap-4
-              lg:grid-cols-[minmax(0,1fr)_320px]
-              lg:items-stretch
+              flex
+              min-w-0
+              flex-col
             "
           >
 
-            {/* TRANSMISSION */}
+            <Transmission
+              packet={packet}
+              transmission={transmission}
+              draftMessage={message}
+              onInspect={() => setIsInspectorOpen(true)}
+            />
 
-            <div
-              className="
-                flex
-                min-w-0
-                flex-col
-              "
-            >
+            <div className="mt-3">
 
-              <Transmission
-                packet={packet}
-                transmission={transmission}
-                draftMessage={message}
+              <MessageControl
+                message={message}
+                setMessage={setMessage}
+                sendMessage={sendMessage}
+                isSending={isBusy}
               />
-
-              <div className="mt-3">
-
-                <MessageControl
-                  message={message}
-                  setMessage={setMessage}
-                  sendMessage={sendMessage}
-                  isSending={isBusy}
-                />
-
-              </div>
 
             </div>
 
-
-            {/* PACKET INSPECTOR */}
-
-            <aside
-              className="
-                flex
-                min-w-0
-              "
-            >
-
-              <PacketInspector
-                packet={packet}
-                draftMessage={message}
-                transmission={transmission}
-                onClear={clearPacket}
-              />
-
-            </aside>
-
           </div>
         </section>
+
+
+        {/* =========================================
+            PACKET INSPECTOR (POPUP)
+        ========================================= */}
+
+        {isInspectorOpen && (
+          <PacketInspector
+            key={packet?.id || "draft"}
+            packet={packet}
+            draftMessage={message}
+            transmission={transmission}
+            onClear={clearPacket}
+            onClose={() => setIsInspectorOpen(false)}
+          />
+        )}
 
 
         {/* =========================================

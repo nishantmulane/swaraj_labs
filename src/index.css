@@ -24,6 +24,10 @@
 }
 
 
+/* =====================================================
+   GLOBAL
+===================================================== */
+
 :root {
   font-family: "Space Grotesk", sans-serif;
   color-scheme: dark;
@@ -132,8 +136,17 @@ button:disabled {
     2s
     linear
     forwards;
+
+  will-change:
+    top,
+    left,
+    transform;
 }
 
+
+/* =====================================================
+   AMBIENT NETWORK MOTION
+===================================================== */
 
 @keyframes drift-vertical {
   0% {
@@ -293,7 +306,43 @@ button:disabled {
 
 
 /* =====================================================
-   SHELL PULSE
+   ENTRY — LOGO
+===================================================== */
+
+@keyframes entry-logo {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(8px)
+      scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+.animate-entry-logo {
+  opacity: 0;
+
+  animation:
+    entry-logo
+    800ms
+    cubic-bezier(0.2, 0.8, 0.2, 1)
+    1;
+
+  animation-fill-mode: both;
+}
+
+
+/* =====================================================
+   ENTRY — SHELL PULSE
 ===================================================== */
 
 @keyframes shell-pulse {
@@ -326,63 +375,6 @@ button:disabled {
 
 
 /* =====================================================
-   CURSOR AMBIENT LIGHT
-===================================================== */
-/* 
-.cursor-glow {
-  position: fixed;
-
-  width: 280px;
-  height: 280px;
-
-  pointer-events: none;
-
-  z-index: 20;
-
-  transform:
-    translate(-50%, -50%);
-
-  border-radius: 50%;
-
-  background:
-    radial-gradient(
-      circle,
-
-      rgba(184, 217, 74, 0.09) 0%,
-
-      rgba(184, 217, 74, 0.045) 30%,
-
-      rgba(184, 217, 74, 0.015) 52%,
-
-      transparent 72%
-    );
-
-  filter:
-    blur(5px);
-
-  transition:
-    opacity 400ms ease;
-
-  will-change:
-    left,
-    top;
-} */
-
-
-/* =====================================================
-   MOBILE
-===================================================== */
-
-@media (max-width: 640px) {
-
-  .cursor-glow {
-    width: 200px;
-    height: 200px;
-  }
-}
-
-
-/* =====================================================
    REDUCED MOTION
 ===================================================== */
 
@@ -400,28 +392,4 @@ button:disabled {
     transition-duration:
       0.01ms !important;
   }
-}
-
-@keyframes entry-logo {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.9);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.animate-entry-logo {
-  opacity: 0;
-
-  animation:
-    entry-logo
-    800ms
-    cubic-bezier(0.2, 0.8, 0.2, 1)
-    1;
-
-  animation-fill-mode: both;
 }
