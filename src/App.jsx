@@ -1,20 +1,24 @@
 import { useState } from "react";
 
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import TryThis from "./components/TryThis";
-import KeyConcepts from "./components/KeyConcepts";
-import SessionStats from "./components/SessionStats";
-import Transmission from "./components/Transmission";
-import MessageControl from "./components/MessageControl";
-import WhatsHappening from "./components/WhatsHappening";
-import PacketInspector from "./components/PacketInspector";
-import EntryTransition from "./components/EntryTransition";
-import useNetworkSimulation from "./hooks/useNetworkSimulation";
+import { EntryTransition, Transmission } from "./components/transmission";
+import { MessageControl } from "./components/controls";
+import { PacketInspector } from "./components/packet";
 
+import {
+  KeyConcepts,
+  TryThis,
+  WhatsHappening,
+} from "./components/education";
+
+import {
+  SessionStats,
+  RecentTransmissions,
+} from "./components/statistics";
+
+import { Header, Footer } from "./components/layout";
+import { useNetworkSimulation } from "./hooks";
 
 function App() {
-  
   const [entered, setEntered] = useState(false);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
 
@@ -33,35 +37,23 @@ function App() {
     failedPackets,
   } = useNetworkSimulation();
 
-
   return (
     <main className="network-grid min-h-screen">
-
-      {/* =========================================
-          ENTRY TRANSITION
-      ========================================= */}
-
       {!entered && (
-        <EntryTransition
-          onComplete={() => setEntered(true)}
-        />
+        <EntryTransition onComplete={() => setEntered(true)} />
       )}
 
-
-      {/* =========================================
-          HOME
-      ========================================= */}
-
+      {/* IMPORTANT:
+          This wrapper is animated with translate-y/opacity.
+          A transformed ancestor changes the containing block of
+          position: fixed descendants, which was causing the
+          Packet Inspector to position relative to this wrapper
+          instead of the viewport.
+      */}
       <div
         className={`
-          mx-auto
-          w-full
-          max-w-7xl
-
-          transition-all
-          duration-700
-          ease-out
-
+          mx-auto w-full max-w-7xl
+          transition-all duration-700 ease-out
           ${
             entered
               ? "translate-y-0 opacity-100"
@@ -69,287 +61,71 @@ function App() {
           }
         `}
       >
-
-        {/* HEADER */}
-
         <Header />
 
+        <section className="px-6 pt-5 sm:px-10 lg:px-8">
+          <Transmission
+            packet={packet}
+            transmission={transmission}
+            draftMessage={message}
+            onInspect={() => setIsInspectorOpen(true)}
+          />
 
-        {/* =========================================
-            PRIMARY LAB
-        ========================================= */}
-
-        <section
-          className="
-            px-6
-            pt-5
-            sm:px-10
-            lg:px-8
-          "
-        >
-          <div
-            className="
-              flex
-              min-w-0
-              flex-col
-            "
-          >
-
-            <Transmission
-              packet={packet}
+          <div className="mt-3">
+            <MessageControl
+              message={message}
+              setMessage={setMessage}
+              sendMessage={sendMessage}
+              isSending={isBusy}
               transmission={transmission}
-              draftMessage={message}
-              onInspect={() => setIsInspectorOpen(true)}
             />
-
-            <div className="mt-3">
-
-              <MessageControl
-                message={message}
-                setMessage={setMessage}
-                sendMessage={sendMessage}
-                isSending={isBusy}
-              />
-
-            </div>
-
           </div>
         </section>
 
-
-        {/* =========================================
-            PACKET INSPECTOR (POPUP)
-        ========================================= */}
-
-        {isInspectorOpen && (
-          <PacketInspector
-            key={packet?.id || "draft"}
-            packet={packet}
-            draftMessage={message}
-            transmission={transmission}
-            onClear={clearPacket}
-            onClose={() => setIsInspectorOpen(false)}
-          />
-        )}
-
-
-        {/* =========================================
-            SUPPORTING INFORMATION
-        ========================================= */}
-
-        <section
-          className="
-            mt-4
-            px-6
-            sm:px-10
-            lg:px-8
-          "
-        >
-
-          <div
-            className="
-              grid
-              gap-3
-
-              md:grid-cols-2
-              xl:grid-cols-4
-
-              xl:auto-rows-fr
-            "
-          >
-
+        <section className="mt-4 px-6 sm:px-10 lg:px-8">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 xl:auto-rows-fr">
             <WhatsHappening
               packet={packet}
               transmission={transmission}
             />
-
             <KeyConcepts />
-
             <TryThis />
-
             <SessionStats
               packetsSent={packetsSent}
               packetsDelivered={packetsDelivered}
               dataTransferred={dataTransferred}
               failedPackets={failedPackets}
             />
-
           </div>
-
         </section>
 
-
-        {/* =========================================
-            RECENT TRANSMISSIONS
-        ========================================= */}
-
         {history.length > 0 && (
-
-          <section
-            className="
-              mt-4
-              px-6
-              sm:px-10
-              lg:px-8
-            "
-          >
-
-            <div
-              className="
-                overflow-hidden
-                border
-                border-line-soft
-                bg-surface
-              "
-
-            >
-
-              {/* HEADER */}
-
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-
-                  border-b
-                  border-line-soft
-
-                  px-4
-                  py-2.5
-                "
-              >
-
-                <div
-                  className="
-                    mono
-                    text-[8px]
-                    uppercase
-                    tracking-[0.2em]
-                    text-muted
-                  "
-                >
-                  Recent Transmissions
-                </div>
-
-                <span
-                  className="
-                    mono
-                    text-[7px]
-                    uppercase
-                    tracking-[0.15em]
-                    text-muted-soft
-                  "
-                >
-                  {history.length} packets
-                </span>
-
-              </div>
-
-
-              {/* TABLE */}
-
-              <div className="overflow-x-auto">
-
-                <div className="min-w-[560px]">
-
-                  <div
-                    className="
-                      grid
-                      grid-cols-[1.2fr_1fr_2fr_0.8fr_1fr]
-
-                      border-b
-                      border-line-faint
-
-                      px-4
-                      py-2
-
-                      mono
-                      text-[7px]
-                      uppercase
-                      tracking-[0.15em]
-                      text-muted-soft
-                    "
-                  >
-
-                    <span>ID</span>
-                    <span>Time</span>
-                    <span>Message</span>
-                    <span>Size</span>
-                    <span>Status</span>
-
-                  </div>
-
-
-                  {history.slice(0, 4).map((item) => (
-
-                    <div
-                      key={item.id}
-                      className="
-                        grid
-                        grid-cols-[1.2fr_1fr_2fr_0.8fr_1fr]
-
-                        border-b
-                        border-line-faint
-
-                        px-4
-                        py-2
-
-                        last:border-b-0
-
-                        mono
-                        text-[8px]
-                        text-muted
-                      "
-                    >
-
-                      <span className="text-accent-soft">
-                        {item.id}
-                      </span>
-
-                      <span>
-                        {item.time || "—"}
-                      </span>
-
-                      <span
-                        className="
-                          truncate
-                          pr-3
-                          text-ink
-                        "
-                      >
-                        {item.payload}
-                      </span>
-
-                      <span>
-                        {item.size} B
-                      </span>
-
-                      <span className="text-accent">
-                        {item.status}
-                      </span>
-
-                    </div>
-
-                  ))}
-
-                </div>
-
-              </div>
-
-            </div>
-
+          <section className="mt-4 px-6 sm:px-10 lg:px-8">
+            <RecentTransmissions history={history} />
           </section>
-
         )}
 
-
-        {/* FOOTER */}
-
         <Footer />
-
       </div>
 
+      {/* =====================================================
+          PACKET INSPECTOR
+
+          MUST remain outside the transformed page wrapper.
+          It is a viewport-level modal, not a child of the
+          animated application surface.
+      ===================================================== */}
+
+      {isInspectorOpen && (
+        <PacketInspector
+          key={packet?.id || "draft"}
+          packet={packet}
+          draftMessage={message}
+          transmission={transmission}
+          onClear={clearPacket}
+          onClose={() => setIsInspectorOpen(false)}
+        />
+      )}
     </main>
   );
 }

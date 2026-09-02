@@ -156,11 +156,14 @@ function MessageControl({
                 text-ink
 
                 outline-none
+                ring-0
+
+                focus:outline-none
+                focus:ring-0
+                focus-visible:outline-none
+                focus-visible:ring-0
 
                 placeholder:text-muted
-
-                focus-visible:ring-2
-                focus-visible:ring-accent/50
 
                 disabled:cursor-not-allowed
                 disabled:opacity-50

@@ -4,6 +4,7 @@ function Computer({
   transmission,
   draftMessage,
   role,
+  onInspect,
 }) {
   const isSender = role === "sender";
   const status = transmission?.status || "READY";
@@ -13,6 +14,7 @@ function Computer({
   const isDelivered = status === "DELIVERED";
 
   const hasDraft = Boolean(draftMessage?.trim());
+  const hasPacket = Boolean(packet);
 
   // =========================================
   // DISPLAY STATE
@@ -33,21 +35,49 @@ function Computer({
   let statusLabel = isSender ? "Ready" : "Online";
 
   if (isTransmitting) {
-    displayText = packet?.payload || draftMessage || "—";
-    screenLabel = isSender ? "Transmitting" : "Receiving";
-    statusLabel = isSender ? "Sending..." : "Receiving...";
+    displayText =
+      packet?.message ||
+      packet?.payload ||
+      draftMessage ||
+      "—";
+
+    screenLabel = isSender
+      ? "Transmitting"
+      : "Receiving";
+
+    statusLabel = isSender
+      ? "Sending..."
+      : "Receiving...";
   }
 
   if (isReceiving) {
-    displayText = packet?.payload || draftMessage || "—";
-    screenLabel = isSender ? "Sent" : "Receiving";
-    statusLabel = isSender ? "Sent" : "Receiving...";
+    displayText =
+      packet?.message ||
+      packet?.payload ||
+      draftMessage ||
+      "—";
+
+    screenLabel = isSender
+      ? "Sent"
+      : "Receiving";
+
+    statusLabel = isSender
+      ? "Sent"
+      : "Receiving...";
   }
 
   if (isDelivered) {
-    displayText = packet?.payload || draftMessage || "—";
+    displayText =
+      packet?.message ||
+      packet?.payload ||
+      draftMessage ||
+      "—";
+
     screenLabel = "Successful";
-    statusLabel = isSender ? "Sent" : "Successful";
+
+    statusLabel = isSender
+      ? "Sent"
+      : "Successful";
   }
 
   const isActive =
@@ -56,7 +86,7 @@ function Computer({
     isDelivered;
 
   const showPayload = isSender
-    ? hasDraft || Boolean(packet)
+    ? hasDraft || hasPacket
     : isActive;
 
   // =========================================
@@ -72,7 +102,6 @@ function Computer({
         shrink-0
         flex-col
         items-center
-
         lg:w-[280px]
       "
     >
@@ -83,27 +112,21 @@ function Computer({
       <div
         className="
           w-full
-
           border
           border-line
-
           bg-surface
-
           p-2
         "
       >
         <div
           className="
+            group
             relative
-
             aspect-[16/10]
             w-full
-
             overflow-hidden
-
             border
             border-line-faint
-
             bg-surface-deep
           "
         >
@@ -117,7 +140,6 @@ function Computer({
               absolute
               inset-0
               opacity-20
-
               bg-[linear-gradient(rgba(154,166,178,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(154,166,178,0.04)_1px,transparent_1px)]
               bg-[size:22px_22px]
             "
@@ -133,11 +155,9 @@ function Computer({
               absolute
               left-2.5
               top-2
-
               text-[8px]
               uppercase
               tracking-[0.18em]
-
               text-muted
             "
           >
@@ -154,11 +174,9 @@ function Computer({
               absolute
               right-2.5
               top-2
-
               text-[7px]
               uppercase
               tracking-[0.12em]
-
               text-muted-soft
             "
           >
@@ -174,24 +192,22 @@ function Computer({
               absolute
               inset-x-5
               top-1/2
-
               flex
               -translate-y-1/2
               flex-col
               items-center
-
               text-center
             "
           >
+            {/* Screen label */}
+
             <div
               className={`
                 mono
                 mb-2
-
                 text-[8px]
                 uppercase
                 tracking-[0.24em]
-
                 ${
                   isActive
                     ? "text-accent-soft"
@@ -202,6 +218,8 @@ function Computer({
               {screenLabel}
             </div>
 
+            {/* Message */}
+
             <div
               className={`
                 mono
@@ -209,7 +227,6 @@ function Computer({
                 break-words
                 text-center
                 leading-relaxed
-
                 ${
                   showPayload
                     ? "text-sm text-accent-soft sm:text-base"
@@ -222,49 +239,68 @@ function Computer({
           </div>
 
           {/* ===================================
-              SCREEN STATUS
+              MONITOR FOOTER
           =================================== */}
 
           <div
             className="
               absolute
               bottom-2
+              left-2.5
               right-2.5
-
-              flex
-              items-center
-              gap-1.5
+              h-7
+              border-t
+              border-line-soft
+              pt-1
             "
           >
-            <span
-              className={`
-                h-1.5
-                w-1.5
-                rounded-full
+            {hasPacket && (
+              <button
+                type="button"
+                onClick={onInspect}
+                className={`
+                  flex
+                  h-6
+                  w-full
+                  items-center
+                  justify-center
+                  gap-2
 
-                ${
-                  isActive
-                    ? "bg-accent"
-                    : "bg-muted"
-                }
-              `}
-            />
+                  border
+                  border-accent/25
+                  bg-surface
 
-            <span
-              className="
-                mono
-                text-[7px]
-                uppercase
-                tracking-[0.14em]
-                text-muted
-              "
-            >
-              {isActive
-                ? "Active"
-                : isSender
-                  ? "Ready"
-                  : "Online"}
-            </span>
+                  px-3
+
+                  mono
+                  text-[7px]
+                  uppercase
+                  tracking-[0.16em]
+                  text-accent-soft
+
+                  opacity-50
+
+                  transition-all
+                  duration-200
+
+                  ${
+                    isActive
+                      ? "opacity-100"
+                      : "group-hover:border-accent/70 group-hover:bg-accent-deep group-hover:opacity-100"
+                  }
+
+                  hover:border-accent
+                  hover:bg-accent-deep
+                  hover:text-accent
+                `}
+              >
+                <span className="text-[8px]">
+                  ⌕
+                </span>
+
+                Inspect Packet
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -277,10 +313,8 @@ function Computer({
         className="
           h-5
           w-7
-
           border-x
           border-line
-
           bg-surface
         "
       />
@@ -293,10 +327,8 @@ function Computer({
         className="
           h-1.5
           w-24
-
           border
           border-line
-
           bg-surface
         "
       />
@@ -308,16 +340,13 @@ function Computer({
       <div
         className="
           mt-2
-
           flex
           items-center
           gap-2
-
           mono
           text-[8px]
           uppercase
           tracking-[0.16em]
-
           text-muted-soft
         "
       >
@@ -326,7 +355,6 @@ function Computer({
             h-1.5
             w-1.5
             rounded-full
-
             ${
               isActive
                 ? "bg-accent"

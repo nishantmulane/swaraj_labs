@@ -1,4 +1,4 @@
-import logo from "../assets/swaraj-logo.svg";
+import logo from "../../assets/swaraj-logo.svg";
 
 function Header() {
   return (

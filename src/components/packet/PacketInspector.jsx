@@ -87,12 +87,33 @@ function PacketInspector({
   }, [onClose]);
 
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
     };
   }, []);
+
+  // Always reopen the inspector at the beginning of its content.
+  // This prevents Chrome from restoring/anchoring the previous modal scroll position.
+  useEffect(() => {
+    const scrollContainer = document.querySelector(
+      '[role="dialog"] [data-packet-inspector-scroll]'
+    );
+
+    if (!scrollContainer) return;
+
+    scrollContainer.scrollTop = 0;
+    scrollContainer.scrollLeft = 0;
+
+    const frame = requestAnimationFrame(() => {
+      scrollContainer.scrollTop = 0;
+      scrollContainer.scrollLeft = 0;
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [packetId]);
 
   const tabGuides = {
     journey:
@@ -279,10 +300,11 @@ function PacketInspector({
         fixed
         inset-0
         z-[200]
-
         flex
         items-center
         justify-center
+
+        overflow-hidden
 
         bg-black/60
         p-3
@@ -303,8 +325,8 @@ function PacketInspector({
       <section
         className="
           flex
-          h-[calc(100dvh-24px)]
-          max-h-[calc(100dvh-24px)]
+          h-[calc(100svh-24px)]
+          max-h-[calc(100svh-24px)]
           w-full
           max-w-5xl
           flex-col
@@ -327,16 +349,19 @@ function PacketInspector({
           className="
             flex
             shrink-0
-            items-center
+            flex-wrap
+            items-start
             justify-between
+            gap-3
 
             border-b
             border-line-soft
 
-            px-5
-            py-4
+            px-4
+            py-3
 
             sm:px-6
+            sm:py-4
           "
         >
           <div>
@@ -373,7 +398,7 @@ function PacketInspector({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             {packet && (
               <button
                 type="button"
@@ -442,12 +467,15 @@ function PacketInspector({
           className="
             flex
             shrink-0
-            gap-6
+            gap-5
+            overflow-x-auto
+            overscroll-x-contain
+            scrollbar-none
 
             border-b
             border-line-soft
 
-            px-5
+            px-4
 
             sm:px-6
           "
@@ -495,7 +523,7 @@ function PacketInspector({
             mono
             flex
             shrink-0
-            items-center
+            items-start
             gap-2
 
             border-b
@@ -526,15 +554,26 @@ function PacketInspector({
             SCROLLABLE CONTENT
         ========================================= */}
 
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div
+          className="
+            min-h-0
+            flex-1
+            overflow-x-hidden
+            overflow-y-auto
+            overscroll-contain
+            [overflow-anchor:none]
+          "
+          data-packet-inspector-scroll
+        >
 
           <div
             className="
               mx-auto
               w-full
+              min-w-0
               max-w-3xl
 
-              p-5
+              p-4
 
               sm:p-6
               lg:p-8
@@ -563,7 +602,7 @@ function PacketInspector({
 
                 {/* STEPPER */}
 
-                <div className="mt-5 flex items-center">
+                <div className="mt-5 flex min-w-0 items-center">
 
                   <div
                     className="
@@ -670,7 +709,7 @@ function PacketInspector({
 
                 {/* STEPPER LABELS */}
 
-                <div className="mt-2 grid grid-cols-3 text-center">
+                <div className="mt-2 grid grid-cols-3 gap-2 text-center">
 
                   <div>
                     <div className="mono text-[10px] uppercase text-ink">
@@ -756,7 +795,7 @@ function PacketInspector({
                     Run a scenario — see what actually happens
                   </div>
 
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
 
                     <button
                       type="button"
@@ -889,7 +928,7 @@ function PacketInspector({
 
                 {/* NAVIGATION */}
 
-                <section className="mt-6 grid grid-cols-2 gap-3">
+                <section className="mt-6 grid gap-3 sm:grid-cols-2">
 
                   <button
                     type="button"
@@ -1043,7 +1082,7 @@ function PacketInspector({
 
                 <div className="mt-6">
 
-                  <div className="flex h-9 overflow-hidden border border-line-soft">
+                  <div className="flex h-auto min-h-9 overflow-hidden border border-line-soft sm:h-9">
 
                     <div
                       className="
@@ -1205,11 +1244,11 @@ function PacketInspector({
                     Source → Destination
                   </div>
 
-                  <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                  <div className="mt-3 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
 
                     <div className="space-y-1.5">
 
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <span className="mono text-[9px] text-[#d5c33f]">
                           MAC
                         </span>
@@ -1219,7 +1258,7 @@ function PacketInspector({
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <span className="mono text-[9px] text-[#6dd3a2]">
                           IP
                         </span>
@@ -1229,7 +1268,7 @@ function PacketInspector({
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <span className="mono text-[9px] text-[#72b4ef]">
                           PORT
                         </span>
@@ -1245,9 +1284,9 @@ function PacketInspector({
                       →
                     </div>
 
-                    <div className="space-y-1.5 text-right">
+                    <div className="space-y-1.5 sm:text-right">
 
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <span className="mono text-[9px] text-[#d5c33f]">
                           MAC
                         </span>
@@ -1257,7 +1296,7 @@ function PacketInspector({
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <span className="mono text-[9px] text-[#6dd3a2]">
                           IP
                         </span>
@@ -1267,7 +1306,7 @@ function PacketInspector({
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3">
                         <span className="mono text-[9px] text-[#72b4ef]">
                           PORT
                         </span>
@@ -1292,7 +1331,7 @@ function PacketInspector({
 
                 {/* PLAY */}
 
-                <div className="mt-6 flex items-center justify-between">
+                <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
 
                   <div>
                     <div className="mono text-[10px] uppercase tracking-[0.2em] text-muted">
@@ -1655,7 +1694,7 @@ function PacketInspector({
 
                 {/* BITS */}
 
-                <div className="mt-6 flex flex-wrap items-start gap-4">
+                <div className="mt-6 flex flex-wrap items-start gap-3 sm:gap-4">
 
                   {Array.from(new TextEncoder().encode(message))
                     .slice(0, 5)
@@ -1682,7 +1721,7 @@ function PacketInspector({
                             {character}
                           </span>
 
-                          <div className="flex gap-1">
+                          <div className="flex shrink-0 gap-1">
 
                             {binary.split("").map((bit, bitIndex) => (
                               <span
