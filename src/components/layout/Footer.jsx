@@ -7,9 +7,6 @@ function Footer() {
           flex-col
           gap-2
 
-          border-t
-          border-line-soft
-
           pt-3
 
           sm:flex-row
@@ -38,7 +35,7 @@ function Footer() {
             text-muted-soft
           "
         >
-          Network Transmission Lab
+          Interactive Network Laboratory
         </div>
       </div>
     </footer>

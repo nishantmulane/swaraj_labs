@@ -1,7 +1,12 @@
-function NetworkNode({ label, type = "ROUTER", active = false }) {
+function NetworkNode({
+  label,
+  type = "ROUTER",
+  active = false,
+}) {
   return (
     <div className="relative flex flex-col items-center justify-center">
       {/* NODE */}
+
       <div
         className={`
           relative
@@ -20,12 +25,13 @@ function NetworkNode({ label, type = "ROUTER", active = false }) {
 
           ${
             active
-              ? "border-accent bg-accent-deep shadow-[0_0_18px_rgba(184,217,74,0.18)]"
+              ? "border-accent bg-accent-deep"
               : "border-line-soft"
           }
         `}
       >
         {/* CORE */}
+
         <span
           className={`
             h-1.5
@@ -37,51 +43,68 @@ function NetworkNode({ label, type = "ROUTER", active = false }) {
 
             ${
               active
-                ? "bg-accent shadow-[0_0_8px_rgba(184,217,74,0.8)]"
+                ? "bg-accent"
                 : "bg-muted"
             }
           `}
         />
 
-        {/* SCAN LINE */}
+        {/* ACTIVE MARKER */}
+
         {active && (
           <span
+            aria-hidden="true"
             className="
               pointer-events-none
               absolute
-              inset-0
+              inset-[-4px]
+
               border
               border-accent/20
+
+              transition-opacity
+              duration-300
             "
           />
         )}
       </div>
 
       {/* LABEL */}
+
       <div
         className={`
           mono
           mt-2
           whitespace-nowrap
+
           text-[6px]
           uppercase
           tracking-[0.16em]
+
           transition-colors
           duration-300
-          ${active ? "text-accent-soft" : "text-muted"}
+
+          ${
+            active
+              ? "text-accent-soft"
+              : "text-muted"
+          }
         `}
       >
         {label}
       </div>
 
       {/* TYPE */}
+
       <div
         className="
           mono
           mt-0.5
+
           text-[5px]
           uppercase
           tracking-[0.12em]
+
           text-muted-soft
         "
       >

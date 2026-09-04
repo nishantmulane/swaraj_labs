@@ -1,132 +1,99 @@
-import { useState } from "react";
-
-import { EntryTransition, Transmission } from "./components/transmission";
-import { MessageControl } from "./components/controls";
-import { PacketInspector } from "./components/packet";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import {
-  KeyConcepts,
-  TryThis,
-  WhatsHappening,
-} from "./components/education";
+  Hero,
+  ModuleHome,
+} from "./components/modules";
 
 import {
-  SessionStats,
-  RecentTransmissions,
-} from "./components/statistics";
+  TransmissionModule,
+} from "./components/transmission";
 
-import { Header, Footer } from "./components/layout";
-import { useNetworkSimulation } from "./hooks";
+import { RouteTransition } from "./components/layout";
 
-function App() {
-  const [entered, setEntered] = useState(false);
-  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
-
-  const {
-    message,
-    setMessage,
-    packet,
-    transmission,
-    sendMessage,
-    isBusy,
-    clearPacket,
-    history,
-    packetsSent,
-    packetsDelivered,
-    dataTransferred,
-    failedPackets,
-  } = useNetworkSimulation();
-
+function ComingSoon({ title }) {
   return (
     <main className="network-grid min-h-screen">
-      {!entered && (
-        <EntryTransition onComplete={() => setEntered(true)} />
-      )}
-
-      {/* IMPORTANT:
-          This wrapper is animated with translate-y/opacity.
-          A transformed ancestor changes the containing block of
-          position: fixed descendants, which was causing the
-          Packet Inspector to position relative to this wrapper
-          instead of the viewport.
-      */}
-      <div
-        className={`
-          mx-auto w-full max-w-7xl
-          transition-all duration-700 ease-out
-          ${
-            entered
-              ? "translate-y-0 opacity-100"
-              : "pointer-events-none translate-y-2 opacity-0"
-          }
-        `}
-      >
-        <Header />
-
-        <section className="px-6 pt-5 sm:px-10 lg:px-8">
-          <Transmission
-            packet={packet}
-            transmission={transmission}
-            draftMessage={message}
-            onInspect={() => setIsInspectorOpen(true)}
-          />
-
-          <div className="mt-3">
-            <MessageControl
-              message={message}
-              setMessage={setMessage}
-              sendMessage={sendMessage}
-              isSending={isBusy}
-              transmission={transmission}
-            />
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl items-center justify-center px-6">
+        <div className="text-center">
+          <div
+            className="
+              mono
+              text-[10px]
+              uppercase
+              tracking-[0.18em]
+              text-accent
+            "
+          >
+            Module
           </div>
-        </section>
 
-        <section className="mt-4 px-6 sm:px-10 lg:px-8">
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 xl:auto-rows-fr">
-            <WhatsHappening
-              packet={packet}
-              transmission={transmission}
-            />
-            <KeyConcepts />
-            <TryThis />
-            <SessionStats
-              packetsSent={packetsSent}
-              packetsDelivered={packetsDelivered}
-              dataTransferred={dataTransferred}
-              failedPackets={failedPackets}
-            />
-          </div>
-        </section>
+          <h1 className="mt-3 text-4xl font-medium tracking-tight">
+            {title}
+          </h1>
 
-        {history.length > 0 && (
-          <section className="mt-4 px-6 sm:px-10 lg:px-8">
-            <RecentTransmissions history={history} />
-          </section>
-        )}
-
-        <Footer />
+          <p className="mt-3 text-sm text-text-muted">
+            This module is currently under development.
+          </p>
+        </div>
       </div>
-
-      {/* =====================================================
-          PACKET INSPECTOR
-
-          MUST remain outside the transformed page wrapper.
-          It is a viewport-level modal, not a child of the
-          animated application surface.
-      ===================================================== */}
-
-      {isInspectorOpen && (
-        <PacketInspector
-          key={packet?.id || "draft"}
-          packet={packet}
-          draftMessage={message}
-          transmission={transmission}
-          onClear={clearPacket}
-          onClose={() => setIsInspectorOpen(false)}
-        />
-      )}
     </main>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <main className="network-grid min-h-screen">
+        <RouteTransition>
+          <Routes>
+            {/* HERO / ENTRY */}
+
+            <Route
+              path="/"
+              element={<Hero />}
+            />
+
+            {/* MODULE SELECTION */}
+
+            <Route
+              path="/modules"
+              element={<ModuleHome />}
+            />
+
+            {/* MODULE 01 */}
+
+            <Route
+              path="/transmission"
+              element={<TransmissionModule />}
+            />
+
+            {/* FUTURE MODULES */}
+
+            <Route
+              path="/subnetting"
+              element={
+                <ComingSoon title="Subnetting" />
+              }
+            />
+
+            <Route
+              path="/routing"
+              element={
+                <ComingSoon title="Routing" />
+              }
+            />
+
+            <Route
+              path="/osi"
+              element={
+                <ComingSoon title="OSI Model" />
+              }
+            />
+          </Routes>
+        </RouteTransition>
+      </main>
+    </BrowserRouter>
   );
 }
 

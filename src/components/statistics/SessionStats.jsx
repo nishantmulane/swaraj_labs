@@ -4,6 +4,11 @@ function SessionStats({
   dataTransferred,
   failedPackets,
 }) {
+  const sent = packetsSent ?? 0;
+  const delivered = packetsDelivered ?? 0;
+  const failed = failedPackets ?? 0;
+  const transferred = dataTransferred ?? 0;
+
   return (
     <section className="w-full">
       <div
@@ -47,6 +52,10 @@ function SessionStats({
 
           <span
             className="
+              flex
+              items-center
+              gap-2
+
               mono
               text-[7px]
               uppercase
@@ -54,7 +63,16 @@ function SessionStats({
               text-muted-soft
             "
           >
-            Statistics
+            <span
+              className="
+                h-1.5
+                w-1.5
+                rounded-full
+                bg-accent
+              "
+            />
+
+            Live
           </span>
         </div>
 
@@ -74,22 +92,25 @@ function SessionStats({
         >
           <Stat
             label="Packets Sent"
-            value={packetsSent}
+            value={sent}
+            emphasis
           />
 
           <Stat
             label="Delivered"
-            value={packetsDelivered}
+            value={delivered}
+            emphasis
           />
 
           <Stat
             label="Data Transferred"
-            value={`${dataTransferred} B`}
+            value={`${transferred} B`}
           />
 
           <Stat
             label="Failed"
-            value={failedPackets}
+            value={failed}
+            warning={failed > 0}
           />
         </div>
       </div>
@@ -97,7 +118,12 @@ function SessionStats({
   );
 }
 
-function Stat({ label, value }) {
+function Stat({
+  label,
+  value,
+  emphasis = false,
+  warning = false,
+}) {
   return (
     <div
       className="
@@ -110,9 +136,11 @@ function Stat({ label, value }) {
         className="
           mono
           truncate
+
           text-[7px]
           uppercase
           tracking-[0.15em]
+
           text-muted-soft
         "
       >
@@ -120,13 +148,23 @@ function Stat({ label, value }) {
       </div>
 
       <div
-        className="
+        className={`
           mono
           mt-1.5
-          text-base
           leading-none
-          text-ink
-        "
+
+          ${
+            emphasis
+              ? "text-lg"
+              : "text-base"
+          }
+
+          ${
+            warning
+              ? "text-accent"
+              : "text-ink"
+          }
+        `}
       >
         {value}
       </div>

@@ -89,6 +89,10 @@ function Computer({
     ? hasDraft || hasPacket
     : isActive;
 
+  const nodeId = isSender
+    ? "NODE_001"
+    : "NODE_002";
+
   // =========================================
   // COMPUTER
   // =========================================
@@ -102,6 +106,7 @@ function Computer({
         shrink-0
         flex-col
         items-center
+
         lg:w-[280px]
       "
     >
@@ -112,9 +117,12 @@ function Computer({
       <div
         className="
           w-full
+
           border
           border-line
+
           bg-surface
+
           p-2
         "
       >
@@ -125,8 +133,10 @@ function Computer({
             aspect-[16/10]
             w-full
             overflow-hidden
+
             border
             border-line-faint
+
             bg-surface-deep
           "
         >
@@ -135,13 +145,30 @@ function Computer({
           =================================== */}
 
           <div
+            aria-hidden="true"
+            className="
+              network-grid
+              pointer-events-none
+              absolute
+              inset-0
+              opacity-40
+            "
+          />
+
+          {/* ===================================
+              SCREEN VIGNETTE
+          =================================== */}
+
+          <div
+            aria-hidden="true"
             className="
               pointer-events-none
               absolute
               inset-0
-              opacity-20
-              bg-[linear-gradient(rgba(154,166,178,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(154,166,178,0.04)_1px,transparent_1px)]
-              bg-[size:22px_22px]
+              bg-gradient-to-b
+              from-transparent
+              via-transparent
+              to-base/30
             "
           />
 
@@ -155,6 +182,7 @@ function Computer({
               absolute
               left-2.5
               top-2
+
               text-[8px]
               uppercase
               tracking-[0.18em]
@@ -166,7 +194,7 @@ function Computer({
 
           {/* ===================================
               NODE ID
-          =================================== */}
+          ===================================== */}
 
           <div
             className="
@@ -174,28 +202,31 @@ function Computer({
               absolute
               right-2.5
               top-2
+
               text-[7px]
               uppercase
               tracking-[0.12em]
               text-muted-soft
             "
           >
-            {isSender ? "NODE_001" : "NODE_002"}
+            {nodeId}
           </div>
 
           {/* ===================================
               SCREEN CONTENT
-          =================================== */}
+          ===================================== */}
 
           <div
             className="
               absolute
               inset-x-5
               top-1/2
+
               flex
               -translate-y-1/2
               flex-col
               items-center
+
               text-center
             "
           >
@@ -205,12 +236,14 @@ function Computer({
               className={`
                 mono
                 mb-2
+
                 text-[8px]
                 uppercase
                 tracking-[0.24em]
+
                 ${
                   isActive
-                    ? "text-accent-soft"
+                    ? "text-accent"
                     : "text-muted"
                 }
               `}
@@ -227,6 +260,7 @@ function Computer({
                 break-words
                 text-center
                 leading-relaxed
+
                 ${
                   showPayload
                     ? "text-sm text-accent-soft sm:text-base"
@@ -248,13 +282,14 @@ function Computer({
               bottom-2
               left-2.5
               right-2.5
-              h-7
+
               border-t
               border-line-soft
+
               pt-1
             "
           >
-            {hasPacket && (
+            {hasPacket ? (
               <button
                 type="button"
                 onClick={onInspect}
@@ -267,7 +302,8 @@ function Computer({
                   gap-2
 
                   border
-                  border-accent/25
+                  border-line
+
                   bg-surface
 
                   px-3
@@ -276,30 +312,53 @@ function Computer({
                   text-[7px]
                   uppercase
                   tracking-[0.16em]
-                  text-accent-soft
 
-                  opacity-50
+                  text-muted-soft
 
                   transition-all
                   duration-200
 
-                  ${
-                    isActive
-                      ? "opacity-100"
-                      : "group-hover:border-accent/70 group-hover:bg-accent-deep group-hover:opacity-100"
-                  }
-
-                  hover:border-accent
+                  hover:border-accent/60
                   hover:bg-accent-deep
                   hover:text-accent
+
+                  focus-visible:outline-none
+                  focus-visible:ring-1
+                  focus-visible:ring-accent
+
+                  ${
+                    isActive
+                      ? "border-accent/40 text-accent-soft"
+                      : ""
+                  }
                 `}
               >
-                <span className="text-[8px]">
+                <span
+                  aria-hidden="true"
+                  className="text-[8px]"
+                >
                   ⌕
                 </span>
 
                 Inspect Packet
               </button>
+            ) : (
+              <div
+                className="
+                  flex
+                  h-6
+                  items-center
+                  justify-center
+
+                  mono
+                  text-[7px]
+                  uppercase
+                  tracking-[0.14em]
+                  text-muted
+                "
+              >
+                No packet
+              </div>
             )}
           </div>
         </div>
@@ -310,11 +369,14 @@ function Computer({
       ===================================== */}
 
       <div
+        aria-hidden="true"
         className="
           h-5
           w-7
+
           border-x
           border-line
+
           bg-surface
         "
       />
@@ -324,11 +386,14 @@ function Computer({
       ===================================== */}
 
       <div
+        aria-hidden="true"
         className="
           h-1.5
           w-24
+
           border
           border-line
+
           bg-surface
         "
       />
@@ -340,14 +405,16 @@ function Computer({
       <div
         className="
           mt-2
+
           flex
           items-center
           gap-2
+
           mono
           text-[8px]
           uppercase
           tracking-[0.16em]
-          text-muted-soft
+          text-muted
         "
       >
         <span
@@ -355,6 +422,7 @@ function Computer({
             h-1.5
             w-1.5
             rounded-full
+
             ${
               isActive
                 ? "bg-accent"
@@ -363,7 +431,15 @@ function Computer({
           `}
         />
 
-        {statusLabel}
+        <span
+          className={
+            isActive
+              ? "text-accent"
+              : "text-muted"
+          }
+        >
+          {statusLabel}
+        </span>
       </div>
     </div>
   );

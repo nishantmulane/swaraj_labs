@@ -2,10 +2,8 @@
 
 @import "tailwindcss";
 
-
 @theme {
   --color-base: #11161c;
-
   --color-surface: #171e26;
   --color-surface-raised: #1d2630;
   --color-surface-deep: #12181e;
@@ -34,11 +32,9 @@
   color-scheme: dark;
 }
 
-
 * {
   box-sizing: border-box;
 }
-
 
 html,
 body,
@@ -48,31 +44,24 @@ body,
   margin: 0;
 }
 
-
 body {
   min-height: 100vh;
-
   background: var(--color-base);
-
   color: var(--color-ink);
 }
-
 
 button,
 input {
   font: inherit;
 }
 
-
 button {
   cursor: pointer;
 }
 
-
 button:disabled {
   cursor: not-allowed;
 }
-
 
 .mono {
   font-family: "JetBrains Mono", monospace;
@@ -102,6 +91,36 @@ button:disabled {
 
 
 /* =====================================================
+   ROUTE TRANSITION
+===================================================== */
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-route-enter {
+  animation:
+    route-enter
+    300ms
+    ease-out
+    both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-route-enter {
+    animation: none;
+  }
+}
+
+/* =====================================================
    PACKET ANIMATIONS
 ===================================================== */
 
@@ -116,7 +135,6 @@ button:disabled {
     transform: translate(-100%, -50%);
   }
 }
-
 
 @keyframes move-vertical {
   from {
@@ -152,9 +170,7 @@ button:disabled {
     transform;
 }
 
-
 @media (min-width: 1024px) {
-
   .packet {
     animation:
       move-horizontal
@@ -162,7 +178,6 @@ button:disabled {
       linear
       forwards;
   }
-
 }
 
 
@@ -190,7 +205,6 @@ button:disabled {
   }
 }
 
-
 @keyframes drift-horizontal {
   0% {
     left: -4%;
@@ -211,7 +225,6 @@ button:disabled {
   }
 }
 
-
 .ambient-pulse {
   animation:
     drift-vertical
@@ -220,9 +233,7 @@ button:disabled {
     infinite;
 }
 
-
 @media (min-width: 1024px) {
-
   .ambient-pulse {
     animation:
       drift-horizontal
@@ -230,162 +241,296 @@ button:disabled {
       ease-in-out
       infinite;
   }
-
 }
 
 
 /* =====================================================
-   ENTRY — TITLE
+   MODULE HERO
 ===================================================== */
 
-@keyframes entry-title {
+@keyframes module-hero-fade-up {
   from {
     opacity: 0;
-
-    transform:
-      translateY(10px)
-      scale(0.98);
+    transform: translateY(18px);
+    filter: blur(8px);
   }
 
   to {
     opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
+    transform: translateY(0);
+    filter: blur(0);
   }
 }
 
-
-.animate-entry-title {
-  opacity: 0;
-
-  animation:
-    entry-title
-    900ms
-    cubic-bezier(0.2, 0.8, 0.2, 1)
-    1;
-
-  animation-fill-mode: both;
-}
-
-
-/* =====================================================
-   ENTRY — AUTHOR
-===================================================== */
-
-@keyframes entry-author {
+@keyframes module-hero-fade {
   from {
     opacity: 0;
-
-    transform:
-      translateY(8px);
-
-    letter-spacing:
-      0.24em;
   }
 
   to {
     opacity: 1;
-
-    transform:
-      translateY(0);
-
-    letter-spacing:
-      0.34em;
   }
 }
 
+@keyframes module-hero-draw {
+  from {
+    stroke-dashoffset: 900;
+  }
 
-.animate-entry-author {
-  opacity: 0;
-
-  transform:
-    translateY(8px);
-
-  letter-spacing:
-    0.24em;
-
-  animation:
-    entry-author
-    700ms
-    ease
-    1;
-
-  animation-delay:
-    1s;
-
-  animation-fill-mode:
-    both;
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
-
-/* =====================================================
-   ENTRY — LOGO
-===================================================== */
-
-@keyframes entry-logo {
+@keyframes module-hero-node {
   from {
     opacity: 0;
-
-    transform:
-      translateY(8px)
-      scale(0.9);
+    transform: scale(0.6);
   }
 
   to {
     opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
+    transform: scale(1);
   }
 }
 
-
-.animate-entry-logo {
-  opacity: 0;
-
-  animation:
-    entry-logo
-    800ms
-    cubic-bezier(0.2, 0.8, 0.2, 1)
-    1;
-
-  animation-fill-mode: both;
-}
-
-
-/* =====================================================
-   ENTRY — SHELL PULSE
-===================================================== */
-
-@keyframes shell-pulse {
+@keyframes module-hero-pulse {
   0%,
   100% {
-    transform:
-      translate(-50%, -50%)
-      scale(0.8);
-
-    opacity: 0.35;
+    opacity: 0.15;
+    transform: scale(1);
   }
 
   50% {
-    transform:
-      translate(-50%, -50%)
-      scale(1.2);
+    opacity: 0.65;
+    transform: scale(1.35);
+  }
+}
 
-    opacity: 0.7;
+@keyframes module-hero-packet {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+
+  7% {
+    opacity: 1;
+  }
+
+  88% {
+    opacity: 1;
+  }
+
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes module-hero-scan {
+  from {
+    transform: translateY(-120%);
+  }
+
+  to {
+    transform: translateY(520%);
   }
 }
 
 
-.animate-shell-pulse {
+/* =====================================================
+   MODULE HERO — BACKGROUND
+===================================================== */
+
+.module-hero-background {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.5;
+
+  background-image:
+    linear-gradient(
+      rgba(154, 166, 178, 0.035) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(154, 166, 178, 0.035) 1px,
+      transparent 1px
+    );
+
+  background-size: 48px 48px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      black 0%,
+      black 70%,
+      transparent 100%
+    );
+}
+
+
+/* =====================================================
+   MODULE HERO — COPY
+===================================================== */
+
+.module-hero-eyebrow {
+  opacity: 0;
+  transform: translateY(14px);
+
   animation:
-    shell-pulse
-    3s
+    module-hero-fade-up
+    800ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    150ms
+    forwards;
+}
+
+.module-hero-title-line {
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(28px);
+
+  animation:
+    module-hero-fade-up
+    950ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
+}
+
+.module-hero-title-line:nth-child(1) {
+  animation-delay: 350ms;
+}
+
+.module-hero-title-line:nth-child(2) {
+  animation-delay: 500ms;
+}
+
+.module-hero-title-line:nth-child(3) {
+  animation-delay: 650ms;
+}
+
+.module-hero-description {
+  opacity: 0;
+  transform: translateY(14px);
+
+  animation:
+    module-hero-fade-up
+    850ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    850ms
+    forwards;
+}
+
+.module-hero-actions {
+  opacity: 0;
+  transform: translateY(14px);
+
+  animation:
+    module-hero-fade-up
+    800ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    1050ms
+    forwards;
+}
+
+
+/* =====================================================
+   MODULE HERO — NETWORK
+===================================================== */
+
+.module-hero-network {
+  opacity: 0;
+  transform: translateY(12px) scale(0.97);
+
+  animation:
+    module-hero-fade
+    1000ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    550ms
+    forwards;
+}
+
+.module-hero-route {
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+
+  animation:
+    module-hero-draw
+    1500ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    850ms
+    forwards;
+}
+
+.module-hero-node {
+  opacity: 0;
+
+  transform-box: fill-box;
+  transform-origin: center;
+
+  animation:
+    module-hero-node
+    500ms
+    cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
+}
+
+.module-hero-node-1 {
+  animation-delay: 1000ms;
+}
+
+.module-hero-node-2 {
+  animation-delay: 1150ms;
+}
+
+.module-hero-node-3 {
+  animation-delay: 1300ms;
+}
+
+.module-hero-node-4 {
+  animation-delay: 1450ms;
+}
+
+.module-hero-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+
+  animation:
+    module-hero-pulse
+    3.5s
     ease-in-out
+    2s
     infinite;
+}
+
+.module-hero-scan {
+  animation:
+    module-hero-scan
+    8s
+    linear
+    2.5s
+    infinite;
+}
+
+.module-hero-packet {
+  offset-path:
+    path(
+      "M 42 225 L 205 145 L 360 225 L 665 225"
+    );
+
+  offset-rotate: 0deg;
+
+  animation:
+    module-hero-packet
+    4.8s
+    cubic-bezier(0.45, 0.05, 0.55, 0.95)
+    2.15s
+    1
+    forwards;
 }
 
 
@@ -394,18 +539,39 @@ button:disabled {
 ===================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
-    animation-duration:
-      0.01ms !important;
-
-    animation-iteration-count:
-      1 !important;
-
-    transition-duration:
-      0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 
+  .module-hero-eyebrow,
+  .module-hero-title-line,
+  .module-hero-description,
+  .module-hero-actions,
+  .module-hero-network,
+  .module-hero-route,
+  .module-hero-node,
+  .module-hero-ring,
+  .module-hero-scan,
+  .module-hero-packet {
+    animation: none !important;
+  }
+
+  .module-hero-eyebrow,
+  .module-hero-title-line,
+  .module-hero-description,
+  .module-hero-actions,
+  .module-hero-network,
+  .module-hero-node {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .module-hero-route {
+    stroke-dashoffset: 0 !important;
+  }
 }

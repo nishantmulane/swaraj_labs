@@ -23,9 +23,12 @@ function Transmission({
 
   const journeyMessage = {
     READY: "Ready to send your message",
-    TRANSMITTING: "Packet moving through the routed network",
-    RECEIVING: "Packet has reached the receiver",
-    DELIVERED: "Message successfully delivered",
+    TRANSMITTING:
+      "Packet moving through the routed network",
+    RECEIVING:
+      "Packet has reached the receiver",
+    DELIVERED:
+      "Message successfully delivered",
   }[status];
 
   return (
@@ -47,7 +50,6 @@ function Transmission({
         <div className="min-w-0">
 
           <div className="flex items-center gap-2">
-
             <h1
               className="
                 text-sm
@@ -61,15 +63,20 @@ function Transmission({
             </h1>
 
             <span
+              aria-hidden="true"
               className={`
                 h-1.5
                 w-1.5
                 shrink-0
                 rounded-full
-                ${isActive ? "bg-accent" : "bg-muted"}
+
+                ${
+                  isActive
+                    ? "bg-accent"
+                    : "bg-muted"
+                }
               `}
             />
-
           </div>
 
           <div
@@ -93,17 +100,21 @@ function Transmission({
           className={`
             mono
             shrink-0
+
             text-[8px]
             uppercase
             tracking-[0.15em]
-            ${isActive ? "text-accent" : "text-muted"}
+
+            ${
+              isActive
+                ? "text-accent"
+                : "text-muted"
+            }
           `}
         >
           {statusLabel}
         </div>
-
       </div>
-
 
       {/* =========================================
           TRANSMISSION STAGE
@@ -114,15 +125,19 @@ function Transmission({
           flex
           flex-1
           flex-col
+
           border
           border-line-soft
           bg-surface
+
           px-4
-          py-5
+          py-4
+
           sm:px-6
-          sm:py-6
-          lg:px-8
-          lg:py-7
+          sm:py-5
+
+          lg:px-7
+          lg:py-6
         "
       >
 
@@ -133,27 +148,33 @@ function Transmission({
         <div
           className="
             flex
-            min-h-[340px]
             flex-1
             items-center
             justify-center
-            sm:min-h-[370px]
-            lg:min-h-[400px]
+
+            min-h-[320px]
+
+            sm:min-h-[350px]
+
+            lg:min-h-[370px]
           "
         >
-
           <div
             className="
               flex
               w-full
               max-w-[1100px]
+
               flex-col
               items-center
               justify-center
-              gap-8
-              sm:gap-10
+
+              gap-7
+
+              sm:gap-8
+
               lg:flex-row
-              lg:gap-8
+              lg:gap-7
             "
           >
 
@@ -166,6 +187,7 @@ function Transmission({
                 flex
                 w-full
                 justify-center
+
                 lg:w-[280px]
                 lg:shrink-0
               "
@@ -180,7 +202,6 @@ function Transmission({
               />
             </div>
 
-
             {/* =================================
                 NETWORK
             ================================= */}
@@ -193,6 +214,7 @@ function Transmission({
                 flex-1
                 items-center
                 justify-center
+
                 lg:min-w-[260px]
               "
             >
@@ -203,7 +225,6 @@ function Transmission({
               />
             </div>
 
-
             {/* =================================
                 RECEIVER
             ================================= */}
@@ -213,6 +234,7 @@ function Transmission({
                 flex
                 w-full
                 justify-center
+
                 lg:w-[280px]
                 lg:shrink-0
               "
@@ -228,17 +250,15 @@ function Transmission({
             </div>
 
           </div>
-
         </div>
 
-
         {/* =========================================
-            ROUTE LABEL
+            ROUTE TELEMETRY
         ========================================= */}
 
         <div
           className="
-            mt-3
+            mt-2
             flex
             shrink-0
             justify-center
@@ -249,11 +269,14 @@ function Transmission({
               inline-flex
               max-w-full
               items-center
+
               border
               border-line-soft
               bg-surface-deep
+
               px-3
               py-1
+
               mono
               text-[8px]
               uppercase
@@ -265,18 +288,19 @@ function Transmission({
               PACKET ROUTE
             </span>
 
-            <span className="mx-2 text-muted-soft">
+            <span
+              aria-hidden="true"
+              className="mx-2 text-muted-soft"
+            >
               •
             </span>
 
             <span>
-              3 NODES • 4 HOPS
+              3 NETWORK NODES • 4 HOPS
             </span>
           </div>
         </div>
-
       </div>
-
 
       {/* =========================================
           TRANSMISSION MESSAGE
@@ -296,10 +320,13 @@ function Transmission({
           className="
             mono
             text-center
+
             text-[8px]
             uppercase
             tracking-[0.15em]
+
             text-muted-soft
+
             transition-opacity
             duration-300
           "

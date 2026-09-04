@@ -3,7 +3,9 @@ function KeyConcepts() {
     <section className="w-full">
       <div
         className="
+          flex
           h-full
+          flex-col
           overflow-hidden
 
           border
@@ -17,6 +19,10 @@ function KeyConcepts() {
 
         <div
           className="
+            flex
+            items-center
+            justify-between
+
             border-b
             border-line-soft
 
@@ -35,6 +41,17 @@ function KeyConcepts() {
           >
             Key Concept
           </span>
+
+          <span
+            className="
+              h-1.5
+              w-1.5
+              rounded-full
+              bg-accent
+              opacity-70
+            "
+            aria-hidden="true"
+          />
         </div>
 
         {/* =====================================
@@ -44,21 +61,21 @@ function KeyConcepts() {
         <div
           className="
             flex
-            h-[calc(100%-33px)]
+            flex-1
             flex-col
             justify-between
 
-            gap-4
+            gap-5
 
             px-4
-            py-3.5
+            py-4
           "
         >
           <div>
             <div
               className="
                 mono
-                mb-2
+                mb-2.5
                 text-[7px]
                 uppercase
                 tracking-[0.16em]
@@ -72,6 +89,7 @@ function KeyConcepts() {
               className="
                 text-base
                 font-medium
+                leading-tight
                 tracking-tight
                 text-ink
               "
@@ -81,9 +99,10 @@ function KeyConcepts() {
 
             <p
               className="
-                mt-2
+                mt-2.5
+                max-w-[42ch]
                 text-[11px]
-                leading-relaxed
+                leading-[1.65]
                 text-muted
               "
             >
@@ -92,37 +111,6 @@ function KeyConcepts() {
               destination across a network.
             </p>
           </div>
-
-          {/* <button
-            type="button"
-            className="
-              self-start
-
-              border
-              border-line
-
-              px-3
-              py-2
-
-              mono
-              text-[8px]
-              uppercase
-              tracking-[0.15em]
-
-              text-muted
-
-              transition-colors
-
-              hover:border-accent
-              hover:text-accent
-
-              focus-visible:outline-none
-              focus-visible:ring-2
-              focus-visible:ring-accent/50
-            "
-          >
-            Learn more →
-          </button> */}
         </div>
       </div>
     </section>

@@ -1,13 +1,24 @@
 import logo from "../../assets/swaraj-logo.svg";
 
-function Header() {
+function Header({ version = "V1.2", module }) {
   return (
     <header className="px-6 pt-7 sm:px-10 lg:px-16 lg:pt-8">
-      <div className="flex items-center justify-between border-b border-line-soft pb-5">
+      <div
+        className="
+          flex
+          items-center
+          justify-between
 
-        {/* Brand */}
+          border-b
+          border-line-soft
+          pb-5
+        "
+      >
+        {/* =====================================
+            BRAND
+        ===================================== */}
+
         <div className="flex items-center gap-4">
-
           <img
             src={logo}
             alt="Swaraj Labs"
@@ -31,6 +42,7 @@ function Header() {
                   font-semibold
                   tracking-tight
                   text-ink
+
                   sm:text-2xl
                 "
               >
@@ -65,9 +77,11 @@ function Header() {
           </div>
         </div>
 
-        {/* Version / Module */}
-        <div className="hidden items-center gap-4 sm:flex">
+        {/* =====================================
+            VERSION / MODULE
+        ===================================== */}
 
+        <div className="hidden items-center gap-4 sm:flex">
           <span
             className="
               mono
@@ -77,31 +91,33 @@ function Header() {
               text-muted-soft
             "
           >
-            V1.1
+            {version}
           </span>
 
-          <span
-            className="
-              h-1
-              w-1
-              rounded-full
-              bg-muted
-            "
-          />
+          {module && (
+            <>
+              <span
+                className="
+                  h-1
+                  w-1
+                  rounded-full
+                  bg-muted
+                "
+              />
 
-          <span
-            className="
-              mono
-              text-[10px]
-              tracking-[0.18em]
-              text-muted
-            "
-          >
-            MODULE / 01
-          </span>
-
+              <span
+                className="
+                  mono
+                  text-[10px]
+                  tracking-[0.18em]
+                  text-muted
+                "
+              >
+                MODULE / {module}
+              </span>
+            </>
+          )}
         </div>
-
       </div>
     </header>
   );

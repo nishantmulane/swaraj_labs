@@ -24,7 +24,7 @@ function WhatsHappening({ transmission, packet }) {
 
   if (status === "TRANSMITTING") {
     explanation =
-      "Your message has been converted into a packet and is travelling through the local connection.";
+      "Your message has been converted into a packet and is travelling from the sender through the network.";
   }
 
   if (status === "RECEIVING") {
@@ -34,14 +34,30 @@ function WhatsHappening({ transmission, packet }) {
 
   if (status === "DELIVERED") {
     explanation =
-      "The packet was successfully delivered to the receiver.";
+      "The packet has successfully reached its destination.";
   }
 
+  const stateLabel = {
+    READY: "Ready",
+    TRANSMITTING: "In Transit",
+    RECEIVING: "Receiving",
+    DELIVERED: "Delivered",
+  }[status] || "Ready";
+
+  const isActive =
+    status === "TRANSMITTING" ||
+    status === "RECEIVING";
+
   return (
-    <section className="w-full">
+    <section
+      className="w-full"
+      aria-label="Transmission status"
+    >
       <div
         className="
+          flex
           h-full
+          flex-col
           overflow-hidden
 
           border
@@ -79,15 +95,20 @@ function WhatsHappening({ transmission, packet }) {
           </span>
 
           <span
-            className="
+            className={`
               mono
               text-[7px]
               uppercase
               tracking-[0.14em]
-              text-muted-soft
-            "
+
+              ${
+                isActive || status === "DELIVERED"
+                  ? "text-accent"
+                  : "text-muted"
+              }
+            `}
           >
-            Live
+            {stateLabel}
           </span>
         </div>
 
@@ -95,11 +116,21 @@ function WhatsHappening({ transmission, packet }) {
             CONTENT
         ===================================== */}
 
-        <div className="px-4 py-3.5">
+        <div
+          className="
+            flex
+            flex-1
+            flex-col
+
+            px-4
+            py-4
+          "
+        >
           <p
             className="
+              max-w-[42ch]
               text-[11px]
-              leading-relaxed
+              leading-[1.65]
               text-muted
             "
           >
@@ -110,67 +141,116 @@ function WhatsHappening({ transmission, packet }) {
               LIFECYCLE
           =================================== */}
 
-          <div className="mt-3 space-y-1.5">
-            {steps.map((step, index) => (
-              <div
-                key={step.label}
-                className="
-                  flex
-                  min-h-8
-                  items-center
-                  gap-2.5
+          <div
+            className="
+              mt-5
+              border-t
+              border-line-soft
+              pt-3
+            "
+          >
+            <div
+              className="
+                mb-2.5
+                mono
+                text-[7px]
+                uppercase
+                tracking-[0.16em]
+                text-muted-soft
+              "
+            >
+              Transmission Lifecycle
+            </div>
 
-                  border
-                  border-line-soft
+            <div className="space-y-0.5">
+              {steps.map((step, index) => {
+                const isCurrent =
+                  (status === "TRANSMITTING" && index === 1) ||
+                  (status === "RECEIVING" && index === 2);
 
-                  px-2.5
-                  py-1.5
-                "
-              >
-                <span
-                  className={`
-                    flex
-                    h-4.5
-                    w-4.5
-                    shrink-0
-                    items-center
-                    justify-center
+                return (
+                  <div
+                    key={step.label}
+                    className="
+                      flex
+                      items-center
+                      gap-3
+                      py-1.5
+                    "
+                  >
+                    <span
+                      className={`
+                        flex
+                        h-4
+                        w-4
+                        shrink-0
+                        items-center
+                        justify-center
 
-                    border
+                        border
 
-                    mono
-                    text-[7px]
+                        mono
+                        text-[7px]
 
-                    ${
-                      step.active
-                        ? "border-accent text-accent"
-                        : "border-line text-muted"
-                    }
-                  `}
-                >
-                  {step.active ? "✓" : index + 1}
-                </span>
+                        ${
+                          step.active
+                            ? "border-accent text-accent"
+                            : "border-line text-muted"
+                        }
 
-                <span
-                  className={`
-                    min-w-0
+                        ${
+                          isCurrent
+                            ? "bg-accent-deep"
+                            : ""
+                        }
+                      `}
+                    >
+                      {step.active ? "✓" : index + 1}
+                    </span>
 
-                    mono
-                    text-[8px]
-                    uppercase
-                    tracking-[0.1em]
+                    <span
+                      className={`
+                        min-w-0
 
-                    ${
-                      step.active
-                        ? "text-accent"
-                        : "text-muted-soft"
-                    }
-                  `}
-                >
-                  {step.label}
-                </span>
-              </div>
-            ))}
+                        mono
+                        text-[8px]
+                        uppercase
+                        tracking-[0.1em]
+
+                        ${
+                          step.active
+                            ? "text-muted-soft"
+                            : "text-muted"
+                        }
+
+                        ${
+                          isCurrent
+                            ? "text-accent"
+                            : ""
+                        }
+                      `}
+                    >
+                      {step.label}
+                    </span>
+
+                    {isCurrent && (
+                      <span
+                        className="
+                          ml-auto
+                          mono
+                          text-[7px]
+                          uppercase
+                          tracking-[0.12em]
+                          text-accent
+                        "
+                      >
+                        Active
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

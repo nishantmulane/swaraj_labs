@@ -29,20 +29,24 @@ function MessageControl({
     status === "DELIVERED";
 
   return (
-    <section className="w-full">
+    <section
+      className="w-full"
+      aria-label="Message transmission controls"
+    >
       <div
         className="
           overflow-hidden
           border
           border-line-soft
           bg-surface
+          transition-colors
+          duration-200
         "
       >
         <div
           className="
             flex
             flex-col
-
             sm:flex-row
             sm:items-stretch
           "
@@ -57,12 +61,13 @@ function MessageControl({
                 flex
                 items-center
                 justify-between
-
+                gap-4
                 px-4
                 pt-2.5
               "
             >
-              <span
+              <label
+                htmlFor="network-message"
                 className="
                   mono
                   text-[8px]
@@ -72,11 +77,12 @@ function MessageControl({
                 "
               >
                 Message
-              </span>
+              </label>
 
               <div
                 className="
                   flex
+                  shrink-0
                   items-center
                   gap-2
                 "
@@ -89,7 +95,8 @@ function MessageControl({
                     text-[7px]
                     uppercase
                     tracking-[0.14em]
-
+                    transition-colors
+                    duration-200
                     ${
                       isActive || isDelivered
                         ? "text-accent"
@@ -104,20 +111,21 @@ function MessageControl({
                   className="
                     h-1
                     w-1
+                    shrink-0
                     rounded-full
                     bg-line
                   "
                 />
 
-                {/* Size */}
+                {/* Message size */}
 
                 <span
                   className="
                     mono
                     text-[7px]
                     uppercase
-                    tracking-[0.15em]
-                    text-muted-soft
+                    tracking-[0.12em]
+                    text-muted
                   "
                 >
                   {messageSize} B
@@ -126,6 +134,7 @@ function MessageControl({
             </div>
 
             <input
+              id="network-message"
               type="text"
               value={message}
               onChange={(event) =>
@@ -134,39 +143,39 @@ function MessageControl({
               onKeyDown={(event) => {
                 if (
                   event.key === "Enter" &&
+                  !event.shiftKey &&
                   !isDisabled
                 ) {
+                  event.preventDefault();
                   sendMessage();
                 }
               }}
               disabled={isSending}
+              autoComplete="off"
+              spellCheck="false"
               placeholder="Enter message..."
+              aria-label="Message to transmit"
               className="
                 w-full
-
                 bg-transparent
-
                 px-4
                 pb-3
                 pt-1.5
 
                 mono
                 text-xs
-
+                leading-5
                 text-ink
 
                 outline-none
-                ring-0
-
-                focus:outline-none
-                focus:ring-0
-                focus-visible:outline-none
-                focus-visible:ring-0
 
                 placeholder:text-muted
 
+                transition-opacity
+                duration-200
+
                 disabled:cursor-not-allowed
-                disabled:opacity-50
+                disabled:opacity-40
               "
             />
           </div>
@@ -179,6 +188,13 @@ function MessageControl({
             type="button"
             onClick={sendMessage}
             disabled={isDisabled}
+            aria-label={
+              isSending
+                ? "Sending message"
+                : isDelivered
+                  ? "Message sent"
+                  : "Send message"
+            }
             className="
               group
               flex
@@ -203,7 +219,7 @@ function MessageControl({
 
               text-accent-deep
 
-              transition-colors
+              transition-all
               duration-200
 
               hover:bg-accent-hover
@@ -211,6 +227,7 @@ function MessageControl({
               focus-visible:outline-none
               focus-visible:ring-2
               focus-visible:ring-accent-soft
+              focus-visible:ring-offset-0
 
               disabled:cursor-not-allowed
               disabled:opacity-40
@@ -222,21 +239,47 @@ function MessageControl({
             "
           >
             {isSending ? (
-              <span className="inline-flex min-w-[72px] items-center justify-center gap-1.5">
+              <span
+                className="
+                  inline-flex
+                  min-w-[72px]
+                  items-center
+                  justify-center
+                  gap-1.5
+                "
+              >
                 Sending
                 <span className="inline-block w-4 text-left">
                   ...
                 </span>
               </span>
             ) : isDelivered ? (
-              <span className="inline-flex min-w-[72px] items-center justify-center gap-1.5">
+              <span
+                className="
+                  inline-flex
+                  min-w-[72px]
+                  items-center
+                  justify-center
+                  gap-1.5
+                "
+              >
                 Sent
-                <span>✓</span>
+                <span aria-hidden="true">✓</span>
               </span>
             ) : (
-              <span className="inline-flex min-w-[72px] items-center justify-center gap-1.5">
+              <span
+                className="
+                  inline-flex
+                  min-w-[72px]
+                  items-center
+                  justify-center
+                  gap-1.5
+                "
+              >
                 Send
+
                 <span
+                  aria-hidden="true"
                   className="
                     inline-block
                     transition-transform

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 function formatTime(date) {
   return date.toLocaleTimeString([], {
@@ -8,10 +8,61 @@ function formatTime(date) {
   });
 }
 
-// NOTE: App.jsx mounts this component with `key={packet?.id || "draft"}`,
-// so a fresh packet always gives us a fresh component instance — the
-// initial state below runs once per packet, no reset-on-prop-change
-// effect needed.
+/* =====================================================
+   LAYER BUTTON
+===================================================== */
+
+function LayerButton({
+  layer,
+  size,
+  active,
+  onToggle,
+  children,
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(layer)}
+      aria-expanded={active}
+      className={`
+        group
+        flex
+        min-h-9
+        flex-1
+        cursor-pointer
+        items-center
+        justify-center
+        border
+        px-2
+        transition-colors
+        duration-200
+
+        ${
+          active
+            ? "border-accent bg-accent-deep"
+            : "border-line-soft bg-surface-deep hover:border-line hover:bg-surface-raised"
+        }
+      `}
+    >
+      <span
+        className={`
+          mono
+          text-[9px]
+          tracking-[0.06em]
+
+          ${
+            active
+              ? "text-accent-soft"
+              : "text-muted-soft group-hover:text-ink"
+          }
+        `}
+      >
+        {children} · {size}B
+      </span>
+    </button>
+  );
+}
+
 function PacketInspector({
   packet,
   draftMessage,
@@ -20,16 +71,17 @@ function PacketInspector({
   onClose,
 }) {
   const message = draftMessage || packet?.payload || "Hello, network!";
-
   const packetId = packet?.id || packet?.packetId || "PKT-0042";
 
   const initialCreatedDisplay = packet?.createdAt
-    ? typeof packet.createdAt === "string" && Number.isNaN(Date.parse(packet.createdAt))
+    ? typeof packet.createdAt === "string" &&
+      Number.isNaN(Date.parse(packet.createdAt))
       ? packet.createdAt
       : formatTime(new Date(packet.createdAt))
     : "—";
 
   const [activeTab, setActiveTab] = useState("journey");
+
   const [guideText, setGuideText] = useState(
     'This packet was just created. Nothing has been sent yet — click "Layers" to see how it gets wrapped for delivery.'
   );
@@ -53,9 +105,12 @@ function PacketInspector({
     final: "—",
   }));
 
-  const messageBytes = useMemo(() => {
-    return new TextEncoder().encode(message).length;
-  }, [message]);
+  const timersRef = useRef([]);
+
+  const messageBytes = useMemo(
+    () => new TextEncoder().encode(message).length,
+    [message]
+  );
 
   const headers = {
     ethernet: 14,
@@ -72,6 +127,31 @@ function PacketInspector({
 
   const displayCreatedTime = timestamps.created;
 
+  /* =====================================================
+     TIMER CLEANUP
+  ===================================================== */
+
+  const clearTimers = () => {
+    timersRef.current.forEach((timer) => clearTimeout(timer));
+    timersRef.current = [];
+  };
+
+  const addTimer = (callback, delay) => {
+    const timer = setTimeout(callback, delay);
+    timersRef.current.push(timer);
+    return timer;
+  };
+
+  useEffect(() => {
+    return () => {
+      clearTimers();
+    };
+  }, []);
+
+  /* =====================================================
+     ESCAPE
+  ===================================================== */
+
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === "Escape") {
@@ -86,8 +166,13 @@ function PacketInspector({
     };
   }, [onClose]);
 
+  /* =====================================================
+     LOCK PAGE SCROLL
+  ===================================================== */
+
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
+
     document.body.style.overflow = "hidden";
 
     return () => {
@@ -95,8 +180,10 @@ function PacketInspector({
     };
   }, []);
 
-  // Always reopen the inspector at the beginning of its content.
-  // This prevents Chrome from restoring/anchoring the previous modal scroll position.
+  /* =====================================================
+     RESET MODAL SCROLL
+  ===================================================== */
+
   useEffect(() => {
     const scrollContainer = document.querySelector(
       '[role="dialog"] [data-packet-inspector-scroll]'
@@ -115,12 +202,16 @@ function PacketInspector({
     return () => cancelAnimationFrame(frame);
   }, [packetId]);
 
+  /* =====================================================
+     TAB GUIDANCE
+  ===================================================== */
+
   const tabGuides = {
     journey:
-      'This packet was just created. Run a scenario below to see how a network actually confirms delivery — or handles loss.',
+      "This packet was just created. Run a scenario below to see how a network confirms delivery — or handles loss.",
 
     layers:
-      'Tap "Play" to watch the payload get wrapped, or tap any "?" for that layer\'s technical fields.',
+      'Click "Play" to watch the payload get wrapped, or inspect any layer to see its technical fields.',
 
     bits:
       "This is what actually travels down the wire — no headers, no layers, just bits.",
@@ -131,6 +222,10 @@ function PacketInspector({
     setOpenInfo(null);
     setGuideText(tabGuides[tab]);
   };
+
+  /* =====================================================
+     LAYER INFO
+  ===================================================== */
 
   const toggleInfo = (layer) => {
     const next = openInfo === layer ? null : layer;
@@ -144,16 +239,25 @@ function PacketInspector({
 
     const guides = {
       eth: "Ethernet only has to get this as far as the next switch or router — one hop.",
-      ip: "IP is the only layer that knows how to route across different networks.",
-      tcp: "TCP is what lets multiple apps share one internet connection without mixing up data.",
+
+      ip: "IP is the layer that carries the source and destination addresses used to move across networks.",
+
+      tcp: "TCP helps applications share a connection and keeps track of data so it can be delivered in order.",
+
       payload:
-        "This is the only part of the packet your application actually asked to send.",
+        "This is the part of the packet your application actually asked to send.",
     };
 
     setGuideText(guides[layer]);
   };
 
+  /* =====================================================
+     SCENARIOS
+  ===================================================== */
+
   const runScenario = (type) => {
+    clearTimers();
+
     setStatus({
       created: true,
       transmitting: false,
@@ -172,7 +276,7 @@ function PacketInspector({
 
     setGuideText("Transmitting…");
 
-    setTimeout(() => {
+    addTimer(() => {
       setStatus((current) => ({
         ...current,
         transmitting: true,
@@ -184,7 +288,7 @@ function PacketInspector({
       }));
     }, 500);
 
-    setTimeout(() => {
+    addTimer(() => {
       if (type === "success") {
         setStatus({
           created: true,
@@ -221,7 +325,13 @@ function PacketInspector({
     }, 1300);
   };
 
+  /* =====================================================
+     LAYER WRAPPING
+  ===================================================== */
+
   const playWrap = () => {
+    clearTimers();
+
     setWrapStage(0);
 
     setGuideText(
@@ -229,46 +339,52 @@ function PacketInspector({
     );
 
     const messages = [
-      "TCP wraps it into a segment, adding ports and sequence info.",
+      "TCP wraps it into a segment, adding ports and sequence information.",
+
       "IP wraps that into a packet, adding source and destination addresses.",
+
       "Ethernet wraps that into a frame — ready for the local link.",
     ];
 
     [1, 2, 3].forEach((stage, index) => {
-      setTimeout(() => {
+      addTimer(() => {
         setWrapStage(stage);
         setGuideText(messages[index]);
       }, (index + 1) * 700);
     });
   };
 
+  /* =====================================================
+     LAYER DATA
+  ===================================================== */
+
+  const layerData = {
+    eth: [
+      ["Source MAC", "AA:BB:CC:11:22:33"],
+      ["Destination", "AA:BB:CC:44:55:66"],
+      ["Type", "IPv4"],
+    ],
+
+    ip: [
+      ["Source IP", "192.168.1.10"],
+      ["Destination", "192.168.1.20"],
+      ["Protocol", "TCP"],
+    ],
+
+    tcp: [
+      ["Source port", "49152"],
+      ["Destination port", "80"],
+      ["Sequence #", "1024"],
+    ],
+  };
+
   const renderLayerInfo = (layer) => {
     if (openInfo !== layer) return null;
 
-    const data = {
-      eth: [
-        ["Source MAC", "AA:BB:CC:11:22:33"],
-        ["Destination", "AA:BB:CC:44:55:66"],
-        ["Type", "IPv4"],
-      ],
-
-      ip: [
-        ["Source IP", "192.168.1.10"],
-        ["Destination", "192.168.1.20"],
-        ["Protocol", "TCP"],
-      ],
-
-      tcp: [
-        ["Source port", "49152"],
-        ["Destination port", "80"],
-        ["Sequence #", "1024"],
-      ],
-    };
-
     if (layer === "payload") {
       return (
-        <div className="mt-3 border-t border-accent/25 pt-3">
-          <div className="mono text-[12px] text-ink">
+        <div className="mt-3 border-t border-line-soft pt-3">
+          <div className="mono break-words text-[12px] text-ink">
             "{message}"
           </div>
         </div>
@@ -278,13 +394,13 @@ function PacketInspector({
     return (
       <div className="mt-3 border-t border-line-soft pt-3">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {data[layer].map(([label, value]) => (
-            <div key={label}>
-              <div className="mono text-[9px] uppercase text-muted">
+          {layerData[layer].map(([label, value]) => (
+            <div key={label} className="min-w-0">
+              <div className="mono text-[9px] uppercase tracking-[0.08em] text-muted">
                 {label}
               </div>
 
-              <div className="mono mt-1 text-[10.5px] text-ink">
+              <div className="mono mt-1 break-all text-[10.5px] text-ink">
                 {value}
               </div>
             </div>
@@ -300,13 +416,14 @@ function PacketInspector({
         fixed
         inset-0
         z-[200]
+
         flex
         items-center
         justify-center
 
         overflow-hidden
 
-        bg-black/60
+        bg-base/80
         p-3
 
         backdrop-blur-[3px]
@@ -337,13 +454,15 @@ function PacketInspector({
 
           bg-surface
 
-          shadow-[0_30px_100px_rgba(0,0,0,0.55),0_0_70px_rgba(184,217,74,0.03)]
+          shadow-[0_30px_100px_rgba(0,0,0,0.55)]
+
+          sm:h-[calc(100svh-40px)]
+          sm:max-h-[calc(100svh-40px)]
         "
       >
-
-        {/* =========================================
+        {/* =================================================
             HEADER
-        ========================================= */}
+        ================================================= */}
 
         <header
           className="
@@ -364,7 +483,7 @@ function PacketInspector({
             sm:py-4
           "
         >
-          <div>
+          <div className="min-w-0">
             <div
               className="
                 mono
@@ -381,6 +500,7 @@ function PacketInspector({
               className="
                 mono
                 mt-1
+                truncate
                 text-[12px]
                 tracking-[0.1em]
                 text-accent-soft
@@ -403,6 +523,7 @@ function PacketInspector({
               <button
                 type="button"
                 onClick={() => {
+                  clearTimers();
                   onClear?.();
                   onClose?.();
                 }}
@@ -419,10 +540,15 @@ function PacketInspector({
                   tracking-[0.1em]
                   text-muted
 
-                  transition
+                  transition-colors
+                  duration-200
 
                   hover:border-line
                   hover:text-ink
+
+                  focus-visible:outline-none
+                  focus-visible:ring-1
+                  focus-visible:ring-accent
                 "
               >
                 Clear packet
@@ -431,7 +557,10 @@ function PacketInspector({
 
             <button
               type="button"
-              onClick={() => onClose?.()}
+              onClick={() => {
+                clearTimers();
+                onClose?.();
+              }}
               className="
                 flex
                 h-8
@@ -446,31 +575,36 @@ function PacketInspector({
                 leading-none
                 text-muted
 
-                transition
+                transition-colors
+                duration-200
 
                 hover:border-line
                 hover:text-ink
+
+                focus-visible:outline-none
+                focus-visible:ring-1
+                focus-visible:ring-accent
               "
-              aria-label="Close"
+              aria-label="Close packet inspector"
             >
               ×
             </button>
           </div>
         </header>
 
-
-        {/* =========================================
+        {/* =================================================
             TABS
-        ========================================= */}
+        ================================================= */}
 
         <div
+          role="tablist"
+          aria-label="Packet inspection views"
           className="
             flex
             shrink-0
             gap-5
             overflow-x-auto
             overscroll-x-contain
-            scrollbar-none
 
             border-b
             border-line-soft
@@ -488,18 +622,29 @@ function PacketInspector({
             <button
               key={key}
               type="button"
-              onClick={() => changeTab(key)}
+              role="tab"
               aria-selected={activeTab === key}
+              tabIndex={activeTab === key ? 0 : -1}
+              onClick={() => changeTab(key)}
               className={`
                 mono
+                shrink-0
+
                 border-b-2
                 border-transparent
+
                 py-2.5
+
                 text-[11px]
                 uppercase
                 tracking-[0.08em]
 
-                transition
+                transition-colors
+                duration-200
+
+                focus-visible:outline-none
+                focus-visible:ring-1
+                focus-visible:ring-accent
 
                 ${
                   activeTab === key
@@ -513,10 +658,9 @@ function PacketInspector({
           ))}
         </div>
 
-
-        {/* =========================================
-            GUIDE BAR
-        ========================================= */}
+        {/* =================================================
+            GUIDE
+        ================================================= */}
 
         <div
           className="
@@ -535,24 +679,22 @@ function PacketInspector({
             py-2
 
             text-[10.5px]
+            leading-relaxed
             text-muted-soft
 
             sm:px-6
           "
         >
-          <span className="text-accent">
+          <span className="shrink-0 text-accent">
             →
           </span>
 
-          <span>
-            {guideText}
-          </span>
+          <span>{guideText}</span>
         </div>
 
-
-        {/* =========================================
+        {/* =================================================
             SCROLLABLE CONTENT
-        ========================================= */}
+        ================================================= */}
 
         <div
           className="
@@ -565,7 +707,6 @@ function PacketInspector({
           "
           data-packet-inspector-scroll
         >
-
           <div
             className="
               mx-auto
@@ -579,14 +720,15 @@ function PacketInspector({
               lg:p-8
             "
           >
-
-            {/* =====================================
+            {/* =================================================
                 JOURNEY
-            ===================================== */}
+            ================================================= */}
 
             {activeTab === "journey" && (
-              <div>
-
+              <div
+                role="tabpanel"
+                aria-label="Packet journey"
+              >
                 <div
                   className="
                     mono
@@ -599,11 +741,9 @@ function PacketInspector({
                   Packet status
                 </div>
 
-
                 {/* STEPPER */}
 
                 <div className="mt-5 flex min-w-0 items-center">
-
                   <div
                     className="
                       flex
@@ -614,10 +754,8 @@ function PacketInspector({
                       justify-center
 
                       rounded-full
-
                       border
                       border-accent
-
                       bg-accent-deep
 
                       text-accent
@@ -630,6 +768,7 @@ function PacketInspector({
                     className={`
                       h-px
                       flex-1
+
                       ${
                         status.transmitting
                           ? "bg-accent"
@@ -648,7 +787,6 @@ function PacketInspector({
                       justify-center
 
                       rounded-full
-
                       border
 
                       ${
@@ -665,11 +803,10 @@ function PacketInspector({
                     className={`
                       h-px
                       flex-1
+
                       ${
                         status.final
-                          ? status.failed
-                            ? "bg-[#e0716a]"
-                            : "bg-accent"
+                          ? "bg-accent"
                           : "bg-line-soft"
                       }
                     `}
@@ -685,32 +822,26 @@ function PacketInspector({
                       justify-center
 
                       rounded-full
-
                       border
 
                       ${
                         status.final
-                          ? status.failed
-                            ? "border-[#e0716a] bg-[#2a1513] text-[#e0716a]"
-                            : "border-accent bg-accent-deep text-accent"
+                          ? "border-accent bg-accent-deep text-accent"
                           : "border-line-soft text-muted"
                       }
                     `}
                   >
                     {status.final
                       ? status.failed
-                        ? "✕"
+                        ? "×"
                         : "✓"
                       : "○"}
                   </div>
-
                 </div>
-
 
                 {/* STEPPER LABELS */}
 
                 <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-
                   <div>
                     <div className="mono text-[10px] uppercase text-ink">
                       Created
@@ -727,6 +858,7 @@ function PacketInspector({
                         mono
                         text-[10px]
                         uppercase
+
                         ${
                           status.transmitting
                             ? "text-accent-soft"
@@ -748,12 +880,11 @@ function PacketInspector({
                         mono
                         text-[10px]
                         uppercase
+
                         ${
-                          status.failed
-                            ? "text-[#e0716a]"
-                            : status.final
-                              ? "text-accent-soft"
-                              : "text-muted-soft"
+                          status.final
+                            ? "text-accent-soft"
+                            : "text-muted-soft"
                         }
                       `}
                     >
@@ -764,15 +895,13 @@ function PacketInspector({
                       {timestamps.final}
                     </div>
                   </div>
-
                 </div>
 
-
-                {/* SCENARIO */}
+                {/* SCENARIOS */}
 
                 <div
                   className="
-                    mt-4
+                    mt-5
 
                     border
                     border-line-faint
@@ -792,11 +921,14 @@ function PacketInspector({
                       text-muted
                     "
                   >
-                    Run a scenario — see what actually happens
+                    Run a scenario
                   </div>
 
-                  <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <p className="mt-1 text-[10.5px] leading-relaxed text-muted-soft">
+                    Change the outcome and observe the packet lifecycle.
+                  </p>
 
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                     <button
                       type="button"
                       onClick={() => runScenario("success")}
@@ -805,17 +937,23 @@ function PacketInspector({
                         border-line-soft
 
                         px-3
-                        py-1.5
+                        py-2
 
                         mono
-                        text-[10.5px]
+                        text-[10px]
                         uppercase
+                        tracking-[0.08em]
                         text-accent-soft
 
-                        transition
+                        transition-colors
+                        duration-200
 
-                        hover:border-line
+                        hover:border-accent/50
                         hover:bg-surface-raised
+
+                        focus-visible:outline-none
+                        focus-visible:ring-1
+                        focus-visible:ring-accent
                       "
                     >
                       ▶ Deliver successfully
@@ -829,37 +967,41 @@ function PacketInspector({
                         border-line-soft
 
                         px-3
-                        py-1.5
+                        py-2
 
                         mono
-                        text-[10.5px]
+                        text-[10px]
                         uppercase
-                        text-[#e0716a]
+                        tracking-[0.08em]
+                        text-muted
 
-                        transition
+                        transition-colors
+                        duration-200
 
                         hover:border-line
                         hover:bg-surface-raised
+                        hover:text-ink
+
+                        focus-visible:outline-none
+                        focus-visible:ring-1
+                        focus-visible:ring-accent
                       "
                     >
                       ▶ Simulate packet loss
                     </button>
-
                   </div>
                 </div>
-
 
                 {/* WHAT TO NOTICE */}
 
                 <div
                   className="
                     mt-6
+
                     border-l-2
                     border-accent
 
-                    bg-gradient-to-r
-                    from-accent/[0.07]
-                    to-transparent
+                    bg-accent/[0.035]
 
                     px-4
                     py-3
@@ -879,16 +1021,14 @@ function PacketInspector({
 
                   <p className="mt-1 text-[11.5px] leading-relaxed text-ink">
                     A packet doesn't just "arrive" — it has a lifecycle,
-                    and networks are built to detect and recover from the
-                    failed case, not just the happy one.
+                    and networks are built to detect and recover from
+                    failed delivery.
                   </p>
                 </div>
-
 
                 {/* MESSAGE */}
 
                 <section className="mt-7">
-
                   <div
                     className="
                       mono
@@ -914,22 +1054,20 @@ function PacketInspector({
                       py-4
                     "
                   >
-                    <div className="mono text-[13px] text-ink">
+                    <div className="mono break-words text-[13px] text-ink">
                       "{message}"
                     </div>
 
-                    <div className="mono mt-1 text-[10px] text-muted">
-                      {message.length} characters · {messageBytes} bytes as UTF-8
+                    <div className="mono mt-2 text-[10px] text-muted">
+                      {message.length} characters · {messageBytes} bytes
+                      as UTF-8
                     </div>
                   </div>
-
                 </section>
-
 
                 {/* NAVIGATION */}
 
                 <section className="mt-6 grid gap-3 sm:grid-cols-2">
-
                   <button
                     type="button"
                     onClick={() => changeTab("layers")}
@@ -944,17 +1082,22 @@ function PacketInspector({
 
                       text-left
 
-                      transition
+                      transition-colors
+                      duration-200
 
                       hover:border-line
                       hover:bg-surface-raised
+
+                      focus-visible:outline-none
+                      focus-visible:ring-1
+                      focus-visible:ring-accent
                     "
                   >
                     <div className="mono text-[10px] uppercase text-muted">
                       Next
                     </div>
 
-                    <div className="mt-1 text-[13px] font-medium">
+                    <div className="mt-1 text-[13px] font-medium text-ink">
                       See what it's wrapped in →
                     </div>
 
@@ -962,7 +1105,6 @@ function PacketInspector({
                       Watch three layers wrap around your message.
                     </p>
                   </button>
-
 
                   <button
                     type="button"
@@ -978,17 +1120,22 @@ function PacketInspector({
 
                       text-left
 
-                      transition
+                      transition-colors
+                      duration-200
 
                       hover:border-line
                       hover:bg-surface-raised
+
+                      focus-visible:outline-none
+                      focus-visible:ring-1
+                      focus-visible:ring-accent
                     "
                   >
                     <div className="mono text-[10px] uppercase text-muted">
                       Also
                     </div>
 
-                    <div className="mt-1 text-[13px] font-medium">
+                    <div className="mt-1 text-[13px] font-medium text-ink">
                       See the actual bits →
                     </div>
 
@@ -996,20 +1143,17 @@ function PacketInspector({
                       It all ends up as 1s and 0s on the wire.
                     </p>
                   </button>
-
                 </section>
-
 
                 {/* REALISM */}
 
                 <section className="mt-7 border-t border-line-soft pt-5">
-
                   <details className="group">
-
                     <summary
                       className="
                         mono
                         cursor-pointer
+
                         text-[10px]
                         uppercase
                         tracking-[0.15em]
@@ -1027,40 +1171,36 @@ function PacketInspector({
                       physical-layer signalling, and error-checking
                       than shown here.
                     </p>
-
                   </details>
-
                 </section>
-
               </div>
             )}
 
-
-            {/* =====================================
+            {/* =================================================
                 LAYERS
-            ===================================== */}
+            ================================================= */}
 
             {activeTab === "layers" && (
-              <div>
-
+              <div
+                role="tabpanel"
+                aria-label="Packet layers"
+              >
                 <div className="mono text-[10px] uppercase tracking-[0.2em] text-muted">
                   Inside the packet
                 </div>
 
-                <div className="mt-2 text-[15px] font-medium">
+                <div className="mt-2 text-[15px] font-medium text-ink">
                   Each layer wraps the one before it
                 </div>
-
 
                 <div
                   className="
                     mt-3
+
                     border-l-2
                     border-accent
 
-                    bg-gradient-to-r
-                    from-accent/[0.07]
-                    to-transparent
+                    bg-accent/[0.035]
 
                     px-4
                     py-3
@@ -1071,22 +1211,19 @@ function PacketInspector({
                   </div>
 
                   <p className="mt-1 text-[11.5px] leading-relaxed text-ink">
-                    Everything outside the lime box is overhead — added
-                    only so the network can deliver it. Your app never
-                    sees it.
+                    Everything outside the payload is overhead — added
+                    so the network can deliver your data.
                   </p>
                 </div>
 
-
-                {/* HEADER / PAYLOAD */}
+                {/* SIZE BAR */}
 
                 <div className="mt-6">
-
-                  <div className="flex h-auto min-h-9 overflow-hidden border border-line-soft sm:h-9">
-
+                  <div className="flex min-h-9 overflow-hidden border border-line-soft">
                     <div
                       className="
                         flex
+                        min-w-0
                         items-center
                         justify-center
 
@@ -1096,7 +1233,7 @@ function PacketInspector({
                         width: `${(totalHeaders / totalBytes) * 100}%`,
                       }}
                     >
-                      <span className="mono text-[9.5px] uppercase tracking-[0.1em] text-muted-soft">
+                      <span className="mono truncate px-2 text-[9.5px] uppercase tracking-[0.06em] text-muted-soft">
                         Headers · {totalHeaders}B
                       </span>
                     </div>
@@ -1104,6 +1241,7 @@ function PacketInspector({
                     <div
                       className="
                         flex
+                        min-w-0
                         items-center
                         justify-center
 
@@ -1113,11 +1251,10 @@ function PacketInspector({
                         width: `${(messageBytes / totalBytes) * 100}%`,
                       }}
                     >
-                      <span className="mono text-[9.5px] uppercase tracking-[0.1em] text-accent-soft">
+                      <span className="mono truncate px-2 text-[9.5px] uppercase tracking-[0.06em] text-accent-soft">
                         Payload · {messageBytes}B
                       </span>
                     </div>
-
                   </div>
 
                   <div className="mt-1.5 text-right mono text-[9.5px] uppercase text-muted">
@@ -1138,92 +1275,88 @@ function PacketInspector({
                       {totalBytes}B
                     </span>
                   </div>
-
                 </div>
 
+                {/* LAYER MAP */}
 
-                {/* MAP BAR */}
-
-                <div className="mt-3 flex h-8 overflow-hidden border border-line-soft">
-
-                  <div
-                    className="
-                      flex
-                      flex-1
-                      cursor-pointer
-                      items-center
-                      justify-center
-                      bg-[#211e10]
-
-                      transition
-                      hover:brightness-110
-                    "
-                    onClick={() => toggleInfo("eth")}
-                  >
-                    <span className="mono text-[9px] text-[#d5c33f]">
-                      ETH · 14B
-                    </span>
+                <div className="mt-4">
+                  <div className="mono mb-2 text-[9px] uppercase tracking-[0.15em] text-muted">
+                    Protocol stack
                   </div>
 
-                  <div
-                    className="
-                      flex
-                      flex-1
-                      cursor-pointer
-                      items-center
-                      justify-center
-                      bg-[#10201a]
+                  <div className="flex flex-col gap-1.5 sm:flex-row">
+                    <LayerButton
+                      layer="eth"
+                      size={14}
+                      active={openInfo === "eth"}
+                      onToggle={toggleInfo}
+                    >
+                      ETH
+                    </LayerButton>
 
-                      transition
-                      hover:brightness-110
-                    "
-                    onClick={() => toggleInfo("ip")}
-                  >
-                    <span className="mono text-[9px] text-[#6dd3a2]">
-                      IP · 20B
-                    </span>
+                    <LayerButton
+                      layer="ip"
+                      size={20}
+                      active={openInfo === "ip"}
+                      onToggle={toggleInfo}
+                    >
+                      IP
+                    </LayerButton>
+
+                    <LayerButton
+                      layer="tcp"
+                      size={20}
+                      active={openInfo === "tcp"}
+                      onToggle={toggleInfo}
+                    >
+                      TCP
+                    </LayerButton>
+
+                    <LayerButton
+                      layer="payload"
+                      size={messageBytes}
+                      active={openInfo === "payload"}
+                      onToggle={toggleInfo}
+                    >
+                      DATA
+                    </LayerButton>
                   </div>
-
-                  <div
-                    className="
-                      flex
-                      flex-1
-                      cursor-pointer
-                      items-center
-                      justify-center
-                      bg-[#101c2a]
-
-                      transition
-                      hover:brightness-110
-                    "
-                    onClick={() => toggleInfo("tcp")}
-                  >
-                    <span className="mono text-[9px] text-[#72b4ef]">
-                      TCP · 20B
-                    </span>
-                  </div>
-
-                  <div
-                    className="
-                      flex
-                      flex-[1.2]
-                      cursor-pointer
-                      items-center
-                      justify-center
-                      bg-accent-deep
-
-                      transition
-                      hover:brightness-110
-                    "
-                    onClick={() => toggleInfo("payload")}
-                  >
-                    <span className="mono text-[9px] text-accent-soft">
-                      DATA · {messageBytes}B
-                    </span>
-                  </div>
-
                 </div>
 
+                {/* SELECTED LAYER */}
+
+                {openInfo && (
+                  <div
+                    className="
+                      mt-3
+
+                      border
+                      border-accent/30
+
+                      bg-surface-deep
+
+                      px-4
+                      py-4
+                    "
+                  >
+                    <div className="mono text-[9px] uppercase tracking-[0.15em] text-accent">
+                      Selected layer
+                    </div>
+
+                    <div className="mt-2 text-[13px] font-medium text-ink">
+                      {
+                        {
+                          eth: "Ethernet frame",
+                          ip: "IP packet",
+                          tcp: "TCP segment",
+                          payload: "Application payload",
+                        }[openInfo]
+                      }
+                    </div>
+
+                    {renderLayerInfo(openInfo)}
+                  </div>
+                )}
 
                 {/* ADDRESSING */}
 
@@ -1244,101 +1377,110 @@ function PacketInspector({
                     Source → Destination
                   </div>
 
-                  <div className="mt-3 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-
-                    <div className="space-y-1.5">
-
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="mono text-[9px] text-[#d5c33f]">
-                          MAC
-                        </span>
-
-                        <span className="mono text-[10px] text-ink">
-                          AA:BB:CC:11:22:33
-                        </span>
+                  <div className="mt-3 grid gap-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+                    <div className="space-y-2">
+                      <div className="mono text-[9px] uppercase text-muted">
+                        Source
                       </div>
 
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="mono text-[9px] text-[#6dd3a2]">
-                          IP
-                        </span>
+                      <div className="space-y-1.5">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="mono text-[9px] text-muted">
+                            MAC
+                          </span>
 
-                        <span className="mono text-[10px] text-ink">
-                          192.168.1.10
-                        </span>
+                          <span className="mono text-[10px] text-ink">
+                            AA:BB:CC:11:22:33
+                          </span>
+                        </div>
+
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="mono text-[9px] text-muted">
+                            IP
+                          </span>
+
+                          <span className="mono text-[10px] text-ink">
+                            192.168.1.10
+                          </span>
+                        </div>
+
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="mono text-[9px] text-muted">
+                            PORT
+                          </span>
+
+                          <span className="mono text-[10px] text-ink">
+                            49152
+                          </span>
+                        </div>
                       </div>
-
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="mono text-[9px] text-[#72b4ef]">
-                          PORT
-                        </span>
-
-                        <span className="mono text-[10px] text-ink">
-                          49152
-                        </span>
-                      </div>
-
                     </div>
 
-                    <div className="mono text-[14px] text-muted">
-                      →
+                    <div className="hidden text-center sm:block">
+                      <div className="mono text-[14px] text-accent">
+                        →
+                      </div>
+
+                      <div className="mono mt-1 text-[7px] uppercase tracking-[0.12em] text-muted">
+                        Network path
+                      </div>
                     </div>
 
-                    <div className="space-y-1.5 sm:text-right">
-
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="mono text-[9px] text-[#d5c33f]">
-                          MAC
-                        </span>
-
-                        <span className="mono text-[10px] text-ink">
-                          AA:BB:CC:44:55:66
-                        </span>
+                    <div className="space-y-2">
+                      <div className="mono text-[9px] uppercase text-muted">
+                        Destination
                       </div>
 
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="mono text-[9px] text-[#6dd3a2]">
-                          IP
-                        </span>
+                      <div className="space-y-1.5">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="mono text-[9px] text-muted">
+                            MAC
+                          </span>
 
-                        <span className="mono text-[10px] text-ink">
-                          192.168.1.20
-                        </span>
+                          <span className="mono text-[10px] text-ink">
+                            AA:BB:CC:44:55:66
+                          </span>
+                        </div>
+
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="mono text-[9px] text-muted">
+                            IP
+                          </span>
+
+                          <span className="mono text-[10px] text-ink">
+                            192.168.1.20
+                          </span>
+                        </div>
+
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="mono text-[9px] text-muted">
+                            PORT
+                          </span>
+
+                          <span className="mono text-[10px] text-ink">
+                            80
+                          </span>
+                        </div>
                       </div>
-
-                      <div className="flex items-start justify-between gap-3">
-                        <span className="mono text-[9px] text-[#72b4ef]">
-                          PORT
-                        </span>
-
-                        <span className="mono text-[10px] text-ink">
-                          80
-                        </span>
-                      </div>
-
                     </div>
-
                   </div>
 
-                  <p className="mt-3 text-[10.5px] leading-relaxed text-muted-soft">
-                    MAC gets it across one local link, IP gets it across
-                    networks, the port tells the receiving computer which
-                    app it's for.
+                  <p className="mt-4 text-[10.5px] leading-relaxed text-muted-soft">
+                    MAC handles the local link, IP identifies the
+                    destination across networks, and the port identifies
+                    the receiving application.
                   </p>
-
                 </div>
-
 
                 {/* PLAY */}
 
-                <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
-
+                <div className="mt-6 flex flex-col gap-3 border-t border-line-soft pt-5 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="mono text-[10px] uppercase tracking-[0.2em] text-muted">
                       Watch it get wrapped
                     </div>
 
-                    <p className="mt-1 text-[10.5px] text-muted-soft">
+                    <p className="mt-1 max-w-lg text-[10.5px] leading-relaxed text-muted-soft">
                       Payload is built first — everything else wraps
                       around it, one layer at a time.
                     </p>
@@ -1359,40 +1501,44 @@ function PacketInspector({
 
                       text-[10.5px]
                       uppercase
+                      tracking-[0.08em]
                       text-accent-soft
 
-                      transition
+                      transition-colors
+                      duration-200
 
                       hover:bg-accent-deep
+
+                      focus-visible:outline-none
+                      focus-visible:ring-1
+                      focus-visible:ring-accent
                     "
                   >
                     ▶ Play
                   </button>
-
                 </div>
-
 
                 {/* NESTED LAYERS */}
 
                 <div
                   className="
                     mt-4
+
                     border
-                    border-[#4a4322]
-                    bg-[#211e10]
+                    border-line-soft
+
+                    bg-surface-deep
+
                     p-3
                   "
                 >
-
                   {/* ETHERNET */}
 
                   {wrapStage >= 3 && (
                     <div>
-
-                      <div className="flex items-center justify-between">
-
-                        <div>
-                          <span className="mono text-[10.5px] uppercase text-[#d5c33f]">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <span className="mono text-[10.5px] uppercase text-accent-soft">
                             Ethernet frame
                           </span>
 
@@ -1404,30 +1550,32 @@ function PacketInspector({
                         <button
                           type="button"
                           onClick={() => toggleInfo("eth")}
+                          aria-label="Inspect Ethernet layer"
+                          aria-expanded={openInfo === "eth"}
                           className="
                             flex
                             h-5
                             w-5
+                            shrink-0
                             items-center
                             justify-center
 
                             rounded-full
-
                             border
-                            border-[#d5c33f]
+                            border-line
 
                             mono
                             text-[11px]
-                            text-[#d5c33f]
+                            text-muted
 
-                            opacity-75
+                            transition-colors
 
-                            hover:opacity-100
+                            hover:border-accent
+                            hover:text-accent
                           "
                         >
                           {openInfo === "eth" ? "–" : "?"}
                         </button>
-
                       </div>
 
                       <p className="mt-2 text-[10.5px] leading-relaxed text-muted-soft">
@@ -1437,24 +1585,13 @@ function PacketInspector({
 
                       {renderLayerInfo("eth")}
 
-
                       {/* IP */}
 
                       {wrapStage >= 2 && (
-                        <div
-                          className="
-                            mt-3
-                            border
-                            border-[#244334]
-                            bg-[#10201a]
-                            p-3
-                          "
-                        >
-
-                          <div className="flex items-center justify-between">
-
-                            <div>
-                              <span className="mono text-[10.5px] uppercase text-[#6dd3a2]">
+                        <div className="mt-3 border border-line-soft bg-surface-raised p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <span className="mono text-[10.5px] uppercase text-accent-soft">
                                 IP packet
                               </span>
 
@@ -1466,30 +1603,32 @@ function PacketInspector({
                             <button
                               type="button"
                               onClick={() => toggleInfo("ip")}
+                              aria-label="Inspect IP layer"
+                              aria-expanded={openInfo === "ip"}
                               className="
                                 flex
                                 h-5
                                 w-5
+                                shrink-0
                                 items-center
                                 justify-center
 
                                 rounded-full
-
                                 border
-                                border-[#6dd3a2]
+                                border-line
 
                                 mono
                                 text-[11px]
-                                text-[#6dd3a2]
+                                text-muted
 
-                                opacity-75
+                                transition-colors
 
-                                hover:opacity-100
+                                hover:border-accent
+                                hover:text-accent
                               "
                             >
                               {openInfo === "ip" ? "–" : "?"}
                             </button>
-
                           </div>
 
                           <p className="mt-2 text-[10.5px] leading-relaxed text-muted-soft">
@@ -1500,24 +1639,13 @@ function PacketInspector({
 
                           {renderLayerInfo("ip")}
 
-
                           {/* TCP */}
 
                           {wrapStage >= 1 && (
-                            <div
-                              className="
-                                mt-3
-                                border
-                                border-[#253c52]
-                                bg-[#101c2a]
-                                p-3
-                              "
-                            >
-
-                              <div className="flex items-center justify-between">
-
-                                <div>
-                                  <span className="mono text-[10.5px] uppercase text-[#72b4ef]">
+                            <div className="mt-3 border border-line-soft bg-surface p-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                  <span className="mono text-[10.5px] uppercase text-accent-soft">
                                     TCP segment
                                   </span>
 
@@ -1529,40 +1657,41 @@ function PacketInspector({
                                 <button
                                   type="button"
                                   onClick={() => toggleInfo("tcp")}
+                                  aria-label="Inspect TCP layer"
+                                  aria-expanded={openInfo === "tcp"}
                                   className="
                                     flex
                                     h-5
                                     w-5
+                                    shrink-0
                                     items-center
                                     justify-center
 
                                     rounded-full
-
                                     border
-                                    border-[#72b4ef]
+                                    border-line
 
                                     mono
                                     text-[11px]
-                                    text-[#72b4ef]
+                                    text-muted
 
-                                    opacity-75
+                                    transition-colors
 
-                                    hover:opacity-100
+                                    hover:border-accent
+                                    hover:text-accent
                                   "
                                 >
                                   {openInfo === "tcp" ? "–" : "?"}
                                 </button>
-
                               </div>
 
                               <p className="mt-2 text-[10.5px] leading-relaxed text-muted-soft">
-                                Exists so the receiver knows which app
-                                the data is for, and can reassemble pieces
-                                in order.
+                                Exists so the receiver knows which
+                                application the data is for, and can
+                                reassemble pieces in order.
                               </p>
 
                               {renderLayerInfo("tcp")}
-
 
                               {/* PAYLOAD */}
 
@@ -1578,10 +1707,8 @@ function PacketInspector({
                                   p-3
                                 "
                               >
-
-                                <div className="flex items-center justify-between">
-
-                                  <div>
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="min-w-0">
                                     <span className="mono text-[10.5px] uppercase text-accent-soft">
                                       Payload
                                     </span>
@@ -1593,16 +1720,22 @@ function PacketInspector({
 
                                   <button
                                     type="button"
-                                    onClick={() => toggleInfo("payload")}
+                                    onClick={() =>
+                                      toggleInfo("payload")
+                                    }
+                                    aria-label="Inspect payload"
+                                    aria-expanded={
+                                      openInfo === "payload"
+                                    }
                                     className="
                                       flex
                                       h-5
                                       w-5
+                                      shrink-0
                                       items-center
                                       justify-center
 
                                       rounded-full
-
                                       border
                                       border-accent
 
@@ -1610,55 +1743,51 @@ function PacketInspector({
                                       text-[11px]
                                       text-accent
 
-                                      opacity-75
+                                      transition-colors
 
-                                      hover:opacity-100
+                                      hover:bg-accent
+                                      hover:text-accent-deep
                                     "
                                   >
-                                    {openInfo === "payload" ? "–" : "?"}
+                                    {openInfo === "payload"
+                                      ? "–"
+                                      : "?"}
                                   </button>
-
                                 </div>
 
                                 <p className="mt-2 text-[10.5px] leading-relaxed text-muted-soft">
-                                  The one part every other layer exists
-                                  to protect and deliver.
+                                  The one part every other layer
+                                  exists to protect and deliver.
                                 </p>
 
                                 {renderLayerInfo("payload")}
-
                               </div>
-
                             </div>
                           )}
-
                         </div>
                       )}
-
                     </div>
                   )}
-
                 </div>
-
               </div>
             )}
 
-
-            {/* =====================================
+            {/* =================================================
                 RAW BITS
-            ===================================== */}
+            ================================================= */}
 
             {activeTab === "bits" && (
-              <div>
-
+              <div
+                role="tabpanel"
+                aria-label="Raw packet bits"
+              >
                 <div className="mono text-[10px] uppercase tracking-[0.2em] text-muted">
                   On the wire
                 </div>
 
-                <div className="mt-2 text-[15px] font-medium">
+                <div className="mt-2 text-[15px] font-medium text-ink">
                   Ultimately, everything becomes bits
                 </div>
-
 
                 <div
                   className="
@@ -1667,9 +1796,7 @@ function PacketInspector({
                     border-l-2
                     border-accent
 
-                    bg-gradient-to-r
-                    from-accent/[0.07]
-                    to-transparent
+                    bg-accent/[0.035]
 
                     px-4
                     py-3
@@ -1680,26 +1807,22 @@ function PacketInspector({
                   </div>
 
                   <p className="mt-1 text-[11.5px] leading-relaxed text-ink">
-                    However many layers wrapped it, the wire only ever
-                    carries one thing: a stream of 1s and 0s.
+                    However many layers wrapped it, the wire ultimately
+                    carries a stream of bits.
                   </p>
                 </div>
 
-
                 <p className="mt-4 text-[11.5px] leading-relaxed text-muted-soft">
-                  Below is the real encoding for the first few characters
-                  of your message, one byte per character (UTF-8).
+                  Below is the encoding for the first few characters of
+                  your message, one byte per character.
                 </p>
-
 
                 {/* BITS */}
 
                 <div className="mt-6 flex flex-wrap items-start gap-3 sm:gap-4">
-
                   {Array.from(new TextEncoder().encode(message))
                     .slice(0, 5)
                     .map((byte, index) => {
-
                       const character = message[index];
 
                       const binary = byte
@@ -1716,57 +1839,51 @@ function PacketInspector({
                             gap-1.5
                           "
                         >
-
-                          <span className="mono text-[10.5px] text-muted-soft">
+                          <span className="mono max-w-20 truncate text-[10.5px] text-muted-soft">
                             {character}
                           </span>
 
                           <div className="flex shrink-0 gap-1">
+                            {binary.split("").map(
+                              (bit, bitIndex) => (
+                                <span
+                                  key={bitIndex}
+                                  className="
+                                    inline-flex
+                                    h-[26px]
+                                    min-w-[22px]
+                                    items-center
+                                    justify-center
 
-                            {binary.split("").map((bit, bitIndex) => (
-                              <span
-                                key={bitIndex}
-                                className="
-                                  inline-flex
-                                  h-[26px]
-                                  min-w-[22px]
-                                  items-center
-                                  justify-center
+                                    border
+                                    border-line-soft
 
-                                  border
-                                  border-line-soft
+                                    bg-surface-deep
 
-                                  bg-surface-deep
+                                    px-1.5
 
-                                  px-1.5
-
-                                  mono
-                                  text-[10.5px]
-                                  text-accent-soft
-                                "
-                              >
-                                {bit}
-                              </span>
-                            ))}
-
+                                    mono
+                                    text-[10.5px]
+                                    text-accent-soft
+                                  "
+                                >
+                                  {bit}
+                                </span>
+                              )
+                            )}
                           </div>
-
                         </div>
                       );
                     })}
 
-                  {message.length > 5 && (
+                  {messageBytes > 5 && (
                     <div className="flex h-[26px] items-center">
-
                       <span className="mono text-[10.5px] text-muted">
                         … {Math.max(messageBytes - 5, 0)} more bytes
                       </span>
-
                     </div>
                   )}
-
                 </div>
-
 
                 {/* TOTAL */}
 
@@ -1783,36 +1900,28 @@ function PacketInspector({
                     py-4
                   "
                 >
-
                   <div className="mono text-[9.5px] uppercase text-muted">
                     Total transmitted
                   </div>
 
-                  <div className="mt-1 text-[13px]">
+                  <div className="mt-1 text-[13px] leading-relaxed text-ink">
                     {messageBytes} bytes of data →{" "}
                     <span className="text-accent-soft">
                       {messageBytes * 8} bits
                     </span>
-
                     {", plus "}
-
                     {totalHeaders} bytes of header across Ethernet,
                     IP and TCP.
                   </div>
-
                 </div>
-
               </div>
             )}
-
           </div>
-
         </div>
 
-
-        {/* =========================================
-            FOOTER
-        ========================================= */}
+        {/* =================================================
+            MODAL FOOTER
+        ================================================= */}
 
         <footer
           className="
@@ -1822,52 +1931,21 @@ function PacketInspector({
             border-line-faint
 
             px-5
-            py-3
+            py-2.5
 
             sm:px-6
           "
         >
-
-          <div
-            className="
-              flex
-              flex-col
-              gap-1
-
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
-            "
-          >
-
-            <span
-              className="
-                mono
-                text-[9px]
-                uppercase
-                tracking-[0.15em]
-                text-muted
-              "
-            >
-              Simplified educational representation
+          <div className="flex items-center justify-between gap-4">
+            <span className="mono text-[8px] uppercase tracking-[0.14em] text-muted">
+              Simplified educational model
             </span>
 
-            <span
-              className="
-                mono
-                text-[9px]
-                uppercase
-                tracking-[0.15em]
-                text-muted
-              "
-            >
-              Swaraj Labs / Network
+            <span className="mono text-[8px] uppercase tracking-[0.14em] text-muted">
+              ESC TO CLOSE
             </span>
-
           </div>
-
         </footer>
-
       </section>
     </div>
   );

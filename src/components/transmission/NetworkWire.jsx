@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const ROUTE = [
   {
@@ -46,7 +46,7 @@ const JOURNEY = [
   {
     id: "receiver",
     progress: 100,
-    caption: "Gateway → forwarding to destination",
+    caption: "Receiver → packet received",
   },
 ];
 
@@ -59,85 +59,109 @@ function RouteNode({ node, active }) {
         absolute
         top-1/2
         z-10
+
         flex
         -translate-x-1/2
         -translate-y-1/2
         flex-col
         items-center
+
         ${NODE_POSITION[node.id]}
       `}
     >
       <div
         className={`
           relative
+
           flex
           h-10
           w-10
           items-center
           justify-center
+
           border
           bg-surface
+
           transition-all
           duration-200
+
           ${
             active
-              ? "scale-105 border-accent shadow-[0_0_18px_rgba(184,217,74,0.18)]"
+              ? "scale-105 border-accent bg-accent-deep"
               : "border-line"
           }
         `}
       >
+        {/* ACTIVE MARKER */}
+
         {active && (
           <span
+            aria-hidden="true"
             className="
               pointer-events-none
               absolute
               inset-[-5px]
-              rounded-full
+
               border
-              border-accent/50
-              animate-ping
+              border-accent/30
             "
           />
         )}
+
+        {/* CORE */}
 
         <span
           className={`
             h-2
             w-2
             rounded-full
+
             transition-all
             duration-200
+
             ${
               active
-                ? "scale-150 bg-accent shadow-[0_0_14px_rgba(184,217,74,0.85)]"
+                ? "scale-125 bg-accent"
                 : "bg-muted"
             }
           `}
         />
       </div>
 
+      {/* LABEL */}
+
       <div
         className={`
           mono
           mt-2
           text-center
+
           text-[7px]
           uppercase
           tracking-[0.12em]
-          ${active ? "text-accent" : "text-muted"}
+
+          ${
+            active
+              ? "text-accent-soft"
+              : "text-muted"
+          }
         `}
       >
         {node.label}
       </div>
+
+      {/* TYPE */}
 
       <div
         className="
           mono
           mt-0.5
           text-center
+
           text-[6px]
           uppercase
           tracking-[0.12em]
+
           text-muted-soft
         "
       >
@@ -147,13 +171,26 @@ function RouteNode({ node, active }) {
   );
 }
 
-function Packet({ packet, message, progress, onInspect }) {
+function Packet({
+  packet,
+  message,
+  progress,
+  onInspect,
+}) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-30">
+    <div
+      className="
+        pointer-events-none
+        absolute
+        inset-0
+        z-30
+      "
+    >
       <div
         className="
           absolute
           top-1/2
+
           transition-[left]
           duration-500
           ease-in-out
@@ -163,96 +200,134 @@ function Packet({ packet, message, progress, onInspect }) {
         <button
           type="button"
           onClick={onInspect}
+          aria-label="Inspect packet"
           className="
             pointer-events-auto
             relative
+
             flex
             h-[64px]
             w-[126px]
             -translate-x-1/2
             -translate-y-[92px]
+
             flex-col
             items-center
             justify-center
+
             border
-            border-accent/60
-            bg-surface/95
-            shadow-[0_0_30px_rgba(184,217,74,0.16)]
+            border-accent/50
+            bg-surface
+
+            px-3
+
             transition-all
             duration-200
+
             hover:border-accent
-            hover:shadow-[0_0_38px_rgba(184,217,74,0.24)]
+            hover:bg-accent-deep
+
+            focus-visible:outline-none
+            focus-visible:ring-1
+            focus-visible:ring-accent
+
             sm:h-[72px]
             sm:w-[142px]
             sm:-translate-y-[108px]
           "
         >
-          {/* Top accent */}
+          {/* TOP MARKER */}
+
           <span
+            aria-hidden="true"
             className="
               absolute
-              -top-[7px]
+              -top-[5px]
               left-1/2
+
               h-px
-              w-[70%]
+              w-[60%]
+
               -translate-x-1/2
+
               bg-accent/50
             "
           />
 
-          {/* Left accent */}
+          {/* LEFT MARKER */}
+
           <span
+            aria-hidden="true"
             className="
               absolute
-              -left-[7px]
+              -left-[5px]
               top-1/2
-              h-[70%]
+
+              h-[60%]
               w-px
+
               -translate-y-1/2
+
               bg-accent/50
             "
           />
 
-          {/* Right accent */}
+          {/* RIGHT MARKER */}
+
           <span
+            aria-hidden="true"
             className="
               absolute
-              -right-[7px]
+              -right-[5px]
               top-1/2
-              h-[70%]
+
+              h-[60%]
               w-px
+
               -translate-y-1/2
+
               bg-accent/50
             "
           />
 
-          {/* Packet ID */}
+          {/* PACKET ID */}
+
           <span
             className="
               mono
+
               text-[10px]
               font-medium
               uppercase
               tracking-[0.12em]
+
               text-accent-soft
+
               sm:text-[11px]
               sm:tracking-[0.14em]
             "
           >
-            {packet?.id || packet?.packetId || "PKT-0001"}
+            {packet?.id ||
+              packet?.packetId ||
+              "PKT-0001"}
           </span>
 
-          {/* Payload */}
+          {/* PAYLOAD */}
+
           <span
             className="
               mono
               mt-1
+
               max-w-[96px]
               truncate
+
               text-[8px]
               uppercase
               tracking-[0.08em]
+
               text-muted-soft
+
               sm:max-w-[110px]
               sm:text-[9px]
               sm:tracking-[0.1em]
@@ -261,17 +336,23 @@ function Packet({ packet, message, progress, onInspect }) {
             {message}
           </span>
 
-          {/* Packet → Network connector */}
+          {/* PACKET → NETWORK CONNECTOR */}
+
           <span
+            aria-hidden="true"
             className="
               pointer-events-none
               absolute
               left-1/2
               top-full
+
               h-[30px]
               w-px
+
               -translate-x-1/2
-              bg-accent/60
+
+              bg-accent/50
+
               sm:h-[36px]
             "
           >
@@ -280,13 +361,16 @@ function Packet({ packet, message, progress, onInspect }) {
                 absolute
                 bottom-0
                 left-1/2
+
                 h-2
                 w-2
+
                 -translate-x-1/2
                 translate-y-1/2
+
                 rounded-full
+
                 bg-accent
-                shadow-[0_0_12px_rgba(184,217,74,0.75)]
               "
             />
           </span>
@@ -296,40 +380,50 @@ function Packet({ packet, message, progress, onInspect }) {
   );
 }
 
-function NetworkWire({ packet, transmission, onInspect }) {
-  const status = transmission?.status || "READY";
+function NetworkWire({
+  packet,
+  transmission,
+  onInspect,
+}) {
+  const status =
+    transmission?.status || "READY";
 
   const showPacket =
     Boolean(packet) &&
     status === "TRANSMITTING";
 
-  const isActive =
-    ["TRANSMITTING", "RECEIVING", "DELIVERED"].includes(status);
+  const isActive = [
+    "TRANSMITTING",
+    "RECEIVING",
+    "DELIVERED",
+  ].includes(status);
 
   const packetMessage =
     packet?.message ||
     packet?.payload ||
     "HELLO!";
 
+  const packetKey =
+    packet?.id ||
+    packet?.packetId ||
+    null;
+
   const [journey, setJourney] = useState({
+    packetKey: null,
     progress: 0,
     activeNode: null,
     caption: "",
   });
 
+  /*
+   * During TRANSMITTING, journey is updated only by
+   * timer callbacks. READY / RECEIVING / DELIVERED
+   * are derived directly below instead of synchronously
+   * setting state inside an effect.
+   */
   useEffect(() => {
-    if (status === "READY" || !packet) {
-      setJourney({
-        progress: 0,
-        activeNode: null,
-        caption: "",
-      });
-
-      return;
-    }
-
-    if (status !== "TRANSMITTING") {
-      return;
+    if (status !== "TRANSMITTING" || !packetKey) {
+      return undefined;
     }
 
     let cancelled = false;
@@ -341,16 +435,23 @@ function NetworkWire({ packet, transmission, onInspect }) {
       }
     };
 
-    updateJourney({
-      progress: 0,
-      activeNode: null,
-      caption: "Packet created → starting transmission",
-    });
+    timers.push(
+      setTimeout(() => {
+        updateJourney({
+          packetKey,
+          progress: 0,
+          activeNode: null,
+          caption:
+            "Packet created → starting transmission",
+        });
+      }, 0)
+    );
 
     JOURNEY.forEach((stage, index) => {
       timers.push(
         setTimeout(() => {
           updateJourney({
+            packetKey,
             progress: stage.progress,
             activeNode:
               stage.id === "receiver"
@@ -366,25 +467,35 @@ function NetworkWire({ packet, transmission, onInspect }) {
       cancelled = true;
       timers.forEach(clearTimeout);
     };
-  }, [status, packet?.id]);
+  }, [status, packetKey]);
 
-  useEffect(() => {
-    if (status === "RECEIVING") {
-      setJourney({
-        progress: 100,
-        activeNode: null,
-        caption: "Receiver → packet received",
-      });
-    }
-
-    if (status === "DELIVERED") {
-      setJourney({
-        progress: 100,
-        activeNode: null,
-        caption: "Receiver → packet delivered",
-      });
-    }
-  }, [status]);
+  const displayedJourney =
+    status === "READY" || !packet
+      ? {
+          progress: 0,
+          activeNode: null,
+          caption: "",
+        }
+      : status === "RECEIVING"
+        ? {
+            progress: 100,
+            activeNode: null,
+            caption: "Receiver → packet received",
+          }
+        : status === "DELIVERED"
+          ? {
+              progress: 100,
+              activeNode: null,
+              caption: "Receiver → packet delivered",
+            }
+          : journey.packetKey === packetKey
+            ? journey
+            : {
+                progress: 0,
+                activeNode: null,
+                caption:
+                  "Packet created → starting transmission",
+              };
 
   return (
     <div
@@ -393,71 +504,93 @@ function NetworkWire({ packet, transmission, onInspect }) {
         h-[160px]
         w-full
         min-w-0
+
         sm:h-[170px]
       "
     >
-      {/* Network line */}
+      {/* NETWORK LINE */}
+
       <div
         className={`
           absolute
           left-0
           right-0
           top-1/2
+
           h-px
+
           -translate-y-1/2
+
           transition-colors
           duration-300
-          ${isActive ? "bg-accent/40" : "bg-line"}
+
+          ${
+            isActive
+              ? "bg-accent/40"
+              : "bg-line"
+          }
         `}
       />
 
-      {/* Route nodes */}
+      {/* ROUTE NODES */}
+
       {ROUTE.map((node) => (
         <RouteNode
           key={node.id}
           node={node}
-          active={journey.activeNode === node.id}
+          active={
+            displayedJourney.activeNode === node.id
+          }
         />
       ))}
 
-      {/* Packet */}
+      {/* PACKET */}
+
       {showPacket && (
         <Packet
           packet={packet}
           message={packetMessage}
-          progress={journey.progress}
+          progress={displayedJourney.progress}
           onInspect={onInspect}
         />
       )}
 
-      {/* Journey caption */}
+      {/* JOURNEY CAPTION */}
+
       <div
         className={`
           absolute
           bottom-[-2px]
           left-1/2
+
           w-[calc(100%-16px)]
           max-w-[420px]
+
           -translate-x-1/2
+
           text-center
+
           mono
           text-[6px]
           uppercase
           leading-relaxed
           tracking-[0.1em]
+
           transition-opacity
           duration-200
+
           sm:whitespace-nowrap
           sm:text-[7px]
           sm:tracking-[0.12em]
+
           ${
-            journey.caption
+            displayedJourney.caption
               ? "text-muted"
               : "pointer-events-none opacity-0"
           }
         `}
       >
-        {journey.caption}
+        {displayedJourney.caption}
       </div>
     </div>
   );

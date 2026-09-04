@@ -10,8 +10,11 @@ function TryThis() {
     <section className="w-full">
       <div
         className="
+          flex
           h-full
+          flex-col
           overflow-hidden
+
           border
           border-line-soft
           bg-surface
@@ -48,26 +51,35 @@ function TryThis() {
 
           <span
             className="
-              mono
-              text-[7px]
-              uppercase
-              tracking-[0.15em]
-              text-muted-soft
+              h-1.5
+              w-1.5
+              rounded-full
+              bg-accent
+              opacity-70
             "
-          >
-            Experiment
-          </span>
+            aria-hidden="true"
+          />
         </div>
 
         {/* =====================================
             CONTENT
         ===================================== */}
 
-        <div className="px-4 py-3.5">
+        <div
+          className="
+            flex
+            flex-1
+            flex-col
+
+            px-4
+            py-4
+          "
+        >
           <p
             className="
+              max-w-[42ch]
               text-[11px]
-              leading-relaxed
+              leading-[1.65]
               text-muted
             "
           >
@@ -75,7 +87,7 @@ function TryThis() {
             observe what changes inside the packet.
           </p>
 
-          <div className="mt-3 space-y-1.5">
+          <div className="mt-4">
             {experiments.map((experiment, index) => (
               <TryItem
                 key={experiment}
@@ -95,27 +107,30 @@ function TryItem({ children, number }) {
   return (
     <div
       className="
+        group
         flex
-        min-h-8
-        items-center
-        gap-2.5
+        items-start
+        gap-3
 
-        border
+        border-t
         border-line-soft
 
-        px-2.5
-        py-1.5
+        py-2.5
 
         transition-colors
-        hover:border-accent/30
+        duration-200
+        first:border-t-0
       "
     >
       <span
         className="
           mono
-          w-4
+          w-5
           shrink-0
+          pt-0.5
+
           text-[7px]
+          tracking-[0.08em]
           text-accent
         "
       >
@@ -125,11 +140,12 @@ function TryItem({ children, number }) {
       <span
         className="
           min-w-0
-
           text-[10px]
-          leading-tight
-
+          leading-[1.5]
           text-muted
+          transition-colors
+          duration-200
+          group-hover:text-muted-soft
         "
       >
         {children}
